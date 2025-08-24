@@ -1,0 +1,71 @@
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import String, Text, Integer, Boolean, TIMESTAMP, ForeignKey, Time
+from sqlalchemy.dialects.mysql import JSON
+
+class Base(DeclarativeBase): pass
+
+class AssetType(Base):
+    __tablename__ = "asset_types"
+    asset_type_id: Mapped[int] = mapped_column(primary_key=True)
+    asset_type_name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    description: Mapped[str | None] = mapped_column(Text)
+
+class Asset(Base):
+    __tablename__ = "assets"
+    asset_id: Mapped[int] = mapped_column(primary_key=True)
+    asset_type_id: Mapped[int] = mapped_column(ForeignKey("asset_types.asset_type_id", ondelete="RESTRICT"), index=True)
+    asset_name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    description: Mapped[str | None] = mapped_column(Text)
+
+class LLM(Base):
+    __tablename__ = "llms"
+    llm_id: Mapped[int] = mapped_column(primary_key=True)
+    llm_name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    api_url: Mapped[str] = mapped_column(String(255))
+    api_key_secret: Mapped[str] = mapped_column(String(255))
+
+class Prompt(Base):
+    __tablename__ = "prompts"
+    prompt_id: Mapped[int] = mapped_column(primary_key=True)
+    llm_id: Mapped[int] = mapped_column(ForeignKey("llms.llm_id", ondelete="RESTRICT"), index=True)
+    prompt_text: Mapped[str] = mapped_column(Text)
+    prompt_version: Mapped[int] = mapped_column(default=1)
+
+class Schedule(Base):
+    __tablename__ = "schedules"
+    schedule_id: Mapped[int] = mapped_column(primary_key=True)
+    schedule_name: Mapped[str] = mapped_column(String(255))
+    schedule_version: Mapped[int] = mapped_column(default=1)
+    initial_query_time: Mapped[Time]
+    description: Mapped[str | None] = mapped_column(Text)
+
+class ScheduleFollowup(Base):
+    __tablename__ = "schedule_followups"
+    followup_id: Mapped[int] = mapped_column(primary_key=True)
+    schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.schedule_id", ondelete="CASCADE"), index=True)
+    followup_type: Mapped[str] = mapped_column(String(50))
+    delay_hours: Mapped[int]
+
+class Survey(Base):
+    __tablename__ = "surveys"
+    survey_id: Mapped[int] = mapped_column(primary_key=True)
+    asset_id: Mapped[int] = mapped_column(ForeignKey("assets.asset_id", ondelete="RESTRICT"), index=True)
+    schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.schedule_id", ondelete="RESTRICT"), index=True)
+    prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.prompt_id", ondelete="RESTRICT"), index=True)
+    llm_id: Mapped[int] = mapped_column(ForeignKey("llms.llm_id", ondelete="RESTRICT"), index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+class CryptoQuery(Base):
+    __tablename__ = "crypto_queries"
+    query_id: Mapped[int] = mapped_column(primary_key=True)
+    survey_id: Mapped[int] = mapped_column(ForeignKey("surveys.survey_id", ondelete="RESTRICT"), index=True)
+    query_type: Mapped[str] = mapped_column(String(50))  # 'Initial' | 'FollowUp'
+    query_timestamp: Mapped[str] = mapped_column(TIMESTAMP)
+    initial_query_id: Mapped[int | None] = mapped_column(ForeignKey("crypto_queries.query_id", ondelete="RESTRICT"), index=True)
+
+class CryptoForecast(Base):
+    __tablename__ = "crypto_forecasts"
+    forecast_id: Mapped[int] = mapped_column(primary_key=True)
+    query_id: Mapped[int] = mapped_column(ForeignKey("crypto_queries.query_id", ondelete="CASCADE"), index=True)
+    horizon_type: Mapped[str] = mapped_column(String(50))
+    forecast_value: Mapped[dict | None] = mapped_column(JSON)  # per PDD

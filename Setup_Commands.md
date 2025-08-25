@@ -8,6 +8,7 @@ git push -u origin master
     docker-compose build <service_name>	
     docker-compose build --no-cache
     docker-compose up -d --build
+    docker compose up
 
 # Run with Docker - Build the Docker Image:
     docker build -t express-static-app .

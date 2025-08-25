@@ -5,9 +5,9 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: rootpass123
-      MYSQL_DATABASE: appdb
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppass123
+      MYSQL_DATABASE: cryptoforecasedatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: userpass123
     ports:
       - "3306:3306"
     healthcheck:
@@ -17,36 +17,31 @@ services:
       retries: 30
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql      # Initialize database with tables
     restart: unless-stopped
+
   api:
     build: .
     environment:
       # Async DSN for the running app
-      DATABASE_URL: mysql+aiomysql://appuser:apppass123@mysql:3306/appdb
-      # Sync DSN available if you want to trigger migrations from inside the container
-      DATABASE_URL_SYNC: mysql+pymysql://appuser:apppass123@mysql:3306/appdb
+      DATABASE_URL: mysql+aiomysql://myuser:userpass123@mysql:3306/cryptoforecasedatabase
       SQL_ECHO: "0"
-      # Enable table auto-create only in DEV if you really want it; prefer Alembic.
-      AUTO_CREATE_TABLES: "0"
     depends_on:
       mysql:
         condition: service_healthy
-      migrate:
-        # Compose supports waiting for a one-shot job to finish successfully
-        condition: service_completed_successfully
     ports:
       - "8080:8080"
+    # Use wget OR curl; ensure your Dockerfile installs one of them
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      # Alternative:
+      # test: ["CMD-SHELL", "curl -fsS http://localhost:8080/healthz || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 12
     volumes:
-      # Mount your source for hot reload during development (optional)
-      # comment this out if you prefer immutable images
+      # Hot reload during development (optional)
       - ./app:/app/app
-      - ./alembic:/app/alembic
-      - ./alembic.ini:/app/alembic.ini
     restart: unless-stopped
 
 volumes:

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import String, Text, Integer, Boolean, TIMESTAMP, ForeignKey, Time
 from sqlalchemy.dialects.mysql import JSON
+import datetime
 
 class Base(DeclarativeBase): pass
 
@@ -36,7 +37,7 @@ class Schedule(Base):
     schedule_id: Mapped[int] = mapped_column(primary_key=True)
     schedule_name: Mapped[str] = mapped_column(String(255))
     schedule_version: Mapped[int] = mapped_column(default=1)
-    initial_query_time: Mapped[Time]
+    initial_query_time: Mapped[datetime.time] = mapped_column(Time)
     description: Mapped[str | None] = mapped_column(Text)
 
 class ScheduleFollowup(Base):

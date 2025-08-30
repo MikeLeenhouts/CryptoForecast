@@ -2,13 +2,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { Database, Coins, Calendar, FileText } from 'lucide-react';
 import { queryClient } from '@/services/queryClient';
-import { assetTypesApi, assetsApi, schedulesApi, reportsApi } from '@/services/api';
+import { assetTypesApi, assetsApi, schedulesApi, cryptoForecastsApi } from '@/services/api';
 import Layout from '@/components/Layout';
 import AssetTypesPage from '@/pages/AssetTypesPage';
 import AssetsPage from '@/pages/AssetsPage';
 import LLMsPage from '@/pages/LLMsPage';
 import PromptsPage from '@/pages/PromptsPage';
+import QueryTypesPage from '@/pages/QueryTypesPage';
 import SchedulesPage from '@/pages/SchedulesPage';
+import QuerySchedulesPage from '@/pages/QuerySchedulesPage';
 import SurveysPage from '@/pages/SurveysPage';
 import QueriesPage from '@/pages/QueriesPage';
 import ReportsPage from '@/pages/ReportsPage';
@@ -55,13 +57,13 @@ const DashboardPage = () => {
   });
 
   const { data: reports = [] } = useQuery({
-    queryKey: ['reports'],
+    queryKey: ['cryptoForecasts'],
     queryFn: async () => {
       try {
-        const response = await reportsApi.getAll();
+        const response = await cryptoForecastsApi.getAll();
         return response.data;
       } catch (error) {
-        console.error('Failed to fetch reports:', error);
+        console.error('Failed to fetch forecasts:', error);
         return [];
       }
     },
@@ -193,8 +195,10 @@ function App() {
             <Route path="assets" element={<AssetsPage />} />
             <Route path="llms" element={<LLMsPage />} />
             <Route path="prompts" element={<PromptsPage />} />
-            <Route path="surveys" element={<SurveysPage />} />
+            <Route path="query-types" element={<QueryTypesPage />} />
             <Route path="schedules" element={<SchedulesPage />} />
+            <Route path="query-schedules" element={<QuerySchedulesPage />} />
+            <Route path="surveys" element={<SurveysPage />} />
             <Route path="queries" element={<QueriesPage />} />
             <Route path="reports" element={<ReportsPage />} />
           </Route>

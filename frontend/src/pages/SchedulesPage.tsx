@@ -16,6 +16,7 @@ export default function SchedulesPage() {
     schedule_name: '',
     schedule_version: 1,
     initial_query_time: '',
+    timezone: 'UTC',
     description: '',
   });
 
@@ -65,6 +66,7 @@ export default function SchedulesPage() {
       schedule_name: '',
       schedule_version: 1,
       initial_query_time: '',
+      timezone: 'UTC',
       description: '',
     });
     setEditingItem(null);
@@ -85,6 +87,7 @@ export default function SchedulesPage() {
       schedule_name: item.schedule_name,
       schedule_version: item.schedule_version,
       initial_query_time: item.initial_query_time,
+      timezone: item.timezone,
       description: item.description || '',
     });
     setIsDialogOpen(true);
@@ -117,6 +120,10 @@ export default function SchedulesPage() {
     {
       key: 'initial_query_time',
       title: 'Query Time',
+    },
+    {
+      key: 'timezone',
+      title: 'Timezone',
     },
     {
       key: 'description',
@@ -180,17 +187,30 @@ export default function SchedulesPage() {
                 />
               </div>
             </div>
-            <div>
-              <Label htmlFor="initial_query_time">Initial Query Time *</Label>
-              <Input
-                id="initial_query_time"
-                type="time"
-                value={formData.initial_query_time}
-                onChange={(e) =>
-                  setFormData({ ...formData, initial_query_time: e.target.value })
-                }
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="initial_query_time">Initial Query Time *</Label>
+                <Input
+                  id="initial_query_time"
+                  type="time"
+                  value={formData.initial_query_time}
+                  onChange={(e) =>
+                    setFormData({ ...formData, initial_query_time: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="timezone">Timezone</Label>
+                <Input
+                  id="timezone"
+                  value={formData.timezone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, timezone: e.target.value })
+                  }
+                  placeholder="UTC"
+                />
+              </div>
             </div>
             <div>
               <Label htmlFor="description">Description</Label>

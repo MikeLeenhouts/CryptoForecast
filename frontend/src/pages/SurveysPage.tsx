@@ -5,8 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DataTable from '@/components/DataTable';
-import { surveysApi, assetsApi, schedulesApi, promptsApi, llmsApi } from '@/services/api';
-import type { Survey, SurveyForm, Asset, Schedule, Prompt, LLM, TableColumn } from '@/types';
+import { surveysApi, assetsApi, schedulesApi, promptsApi } from '@/services/api';
+import type { Survey, SurveyForm, Asset, Schedule, Prompt, TableColumn } from '@/types';
 
 export default function SurveysPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -15,7 +15,6 @@ export default function SurveysPage() {
     asset_id: 0,
     schedule_id: 0,
     prompt_id: 0,
-    llm_id: 0,
     is_active: true,
   });
 
@@ -60,13 +59,6 @@ export default function SurveysPage() {
     },
   });
 
-  const { data: llms = [] } = useQuery({
-    queryKey: ['llms'],
-    queryFn: async () => {
-      const response = await llmsApi.getAll();
-      return response.data;
-    },
-  });
 
   // Create mutation
   const createMutation = useMutation({
@@ -102,7 +94,6 @@ export default function SurveysPage() {
       asset_id: 0,
       schedule_id: 0,
       prompt_id: 0,
-      llm_id: 0,
       is_active: true,
     });
     setEditingItem(null);
@@ -123,7 +114,6 @@ export default function SurveysPage() {
       asset_id: item.asset_id,
       schedule_id: item.schedule_id,
       prompt_id: item.prompt_id,
-      llm_id: item.llm_id,
       is_active: item.is_active,
     });
     setIsDialogOpen(true);
@@ -166,15 +156,7 @@ export default function SurveysPage() {
       title: 'Prompt',
       render: (value) => {
         const prompt = prompts.find((p: Prompt) => p.prompt_id === value);
-        return prompt ? `Prompt ${prompt.prompt_id}` : 'Unknown';
-      },
-    },
-    {
-      key: 'llm_id',
-      title: 'LLM',
-      render: (value) => {
-        const llm = llms.find((l: LLM) => l.llm_id === value);
-        return llm ? llm.llm_name : 'Unknown';
+        return prompt ? `Prompt ${prompt.prompt_id} (v${prompt.prompt_version})` : 'Unknown';
       },
     },
     {
@@ -197,7 +179,7 @@ export default function SurveysPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Surveys</h2>
-          <p className="text-gray-600 mt-2">Manage crypto forecasting surveys that combine assets, schedules, prompts, and LLMs</p>
+          <p className="text-gray-600 mt-2">Manage crypto forecasting surveys that combine assets, schedules, and prompts</p>
         </div>
       </div>
 
@@ -262,47 +244,25 @@ export default function SurveysPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="prompt_id">Prompt *</Label>
-                <Select
-                  value={formData.prompt_id.toString()}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, prompt_id: parseInt(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select prompt" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {prompts.map((prompt: Prompt) => (
-                      <SelectItem key={prompt.prompt_id} value={prompt.prompt_id.toString()}>
-                        Prompt {prompt.prompt_id} (v{prompt.prompt_version})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="llm_id">LLM *</Label>
-                <Select
-                  value={formData.llm_id.toString()}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, llm_id: parseInt(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select LLM" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {llms.map((llm: LLM) => (
-                      <SelectItem key={llm.llm_id} value={llm.llm_id.toString()}>
-                        {llm.llm_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="prompt_id">Prompt *</Label>
+              <Select
+                value={formData.prompt_id.toString()}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, prompt_id: parseInt(value) })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select prompt" />
+                </SelectTrigger>
+                <SelectContent>
+                  {prompts.map((prompt: Prompt) => (
+                    <SelectItem key={prompt.prompt_id} value={prompt.prompt_id.toString()}>
+                      Prompt {prompt.prompt_id} (v{prompt.prompt_version})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="is_active">Status</Label>

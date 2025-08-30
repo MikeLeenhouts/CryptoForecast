@@ -23,12 +23,20 @@ const navigationItems: NavItem[] = [
     href: '/prompts',
   },
   {
-    title: 'Surveys',
-    href: '/surveys',
+    title: 'Query Types',
+    href: '/query-types',
   },
   {
     title: 'Schedules',
     href: '/schedules',
+  },
+  {
+    title: 'Query Schedules',
+    href: '/query-schedules',
+  },
+  {
+    title: 'Surveys',
+    href: '/surveys',
   },
   {
     title: 'Queries',

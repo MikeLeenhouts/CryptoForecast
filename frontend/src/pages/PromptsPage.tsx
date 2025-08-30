@@ -152,23 +152,25 @@ export default function PromptsPage() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="w-full max-w-[50%]">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
               {editingItem ? 'Edit Prompt' : 'Add New Prompt'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="llm_id">LLM *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="llm_id" className="text-sm font-medium text-gray-700">
+                  LLM *
+                </Label>
                 <Select
                   value={formData.llm_id.toString()}
                   onValueChange={(value) =>
                     setFormData({ ...formData, llm_id: parseInt(value) })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select LLM" />
                   </SelectTrigger>
                   <SelectContent>
@@ -180,8 +182,10 @@ export default function PromptsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="prompt_version">Version</Label>
+              <div className="space-y-2">
+                <Label htmlFor="prompt_version" className="text-sm font-medium text-gray-700">
+                  Version
+                </Label>
                 <Input
                   id="prompt_version"
                   type="number"
@@ -191,11 +195,14 @@ export default function PromptsPage() {
                   }
                   placeholder="1"
                   min="1"
+                  className="mt-1"
                 />
               </div>
             </div>
-            <div>
-              <Label htmlFor="prompt_text">Prompt Text *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="prompt_text" className="text-sm font-medium text-gray-700">
+                Prompt Text *
+              </Label>
               <Textarea
                 id="prompt_text"
                 value={formData.prompt_text}
@@ -205,9 +212,10 @@ export default function PromptsPage() {
                 rows={8}
                 placeholder="Enter the AI prompt content here..."
                 required
+                className="mt-1"
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-3 pt-4">
               <Button
                 type="button"
                 variant="outline"

@@ -170,23 +170,25 @@ export default function QuerySchedulesPage() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="w-full max-w-[50%]">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
               {editingItem ? 'Edit Query Schedule' : 'Add New Query Schedule'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="schedule_id">Schedule *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="schedule_id" className="text-sm font-medium text-gray-700">
+                  Schedule *
+                </Label>
                 <Select
                   value={formData.schedule_id.toString()}
                   onValueChange={(value) =>
                     setFormData({ ...formData, schedule_id: parseInt(value) })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select schedule" />
                   </SelectTrigger>
                   <SelectContent>
@@ -198,15 +200,17 @@ export default function QuerySchedulesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="query_type_id">Query Type *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="query_type_id" className="text-sm font-medium text-gray-700">
+                  Query Type *
+                </Label>
                 <Select
                   value={formData.query_type_id.toString()}
                   onValueChange={(value) =>
                     setFormData({ ...formData, query_type_id: parseInt(value) })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select query type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -220,8 +224,10 @@ export default function QuerySchedulesPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="delay_hours">Delay Hours *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="delay_hours" className="text-sm font-medium text-gray-700">
+                  Delay Hours *
+                </Label>
                 <Input
                   id="delay_hours"
                   type="number"
@@ -232,10 +238,13 @@ export default function QuerySchedulesPage() {
                   placeholder="0"
                   min="0"
                   required
+                  className="mt-1"
                 />
               </div>
-              <div>
-                <Label htmlFor="paired_followup_delay_hours">Paired Followup Delay Hours</Label>
+              <div className="space-y-2">
+                <Label htmlFor="paired_followup_delay_hours" className="text-sm font-medium text-gray-700">
+                  Paired Followup Delay Hours
+                </Label>
                 <Input
                   id="paired_followup_delay_hours"
                   type="number"
@@ -248,10 +257,11 @@ export default function QuerySchedulesPage() {
                   }
                   placeholder="Optional"
                   min="0"
+                  className="mt-1"
                 />
               </div>
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-3 pt-4">
               <Button
                 type="button"
                 variant="outline"

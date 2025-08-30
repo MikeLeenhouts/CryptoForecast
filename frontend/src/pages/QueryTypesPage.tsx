@@ -131,15 +131,17 @@ export default function QueryTypesPage() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="w-full max-w-[50%]">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
               {editingItem ? 'Edit Query Type' : 'Add New Query Type'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="query_type_name">Query Type Name *</Label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="query_type_name" className="text-sm font-medium text-gray-700">
+                Query Type Name *
+              </Label>
               <Input
                 id="query_type_name"
                 value={formData.query_type_name}
@@ -148,10 +150,13 @@ export default function QueryTypesPage() {
                 }
                 placeholder="e.g., Initial, OneHour, FourHour"
                 required
+                className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                Description
+              </Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -160,9 +165,10 @@ export default function QueryTypesPage() {
                 }
                 rows={3}
                 placeholder="Describe the purpose and timing of this query type..."
+                className="mt-1"
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-3 pt-4">
               <Button
                 type="button"
                 variant="outline"

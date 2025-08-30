@@ -80,7 +80,7 @@ export default function LLMsPage() {
     setFormData({
       llm_name: item.llm_name,
       api_url: item.api_url,
-      api_key_secret: item.api_key_secret || '',
+      api_key_secret: '', // API key is not returned for security reasons
     });
     setIsDialogOpen(true);
   };
@@ -133,15 +133,17 @@ export default function LLMsPage() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="w-full max-w-[50%]">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
               {editingItem ? 'Edit LLM Configuration' : 'Add New LLM Configuration'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="llm_name">LLM Name *</Label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="llm_name" className="text-sm font-medium text-gray-700">
+                LLM Name *
+              </Label>
               <Input
                 id="llm_name"
                 value={formData.llm_name}
@@ -150,10 +152,13 @@ export default function LLMsPage() {
                 }
                 placeholder="e.g., gpt-4o"
                 required
+                className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="api_url">API URL *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="api_url" className="text-sm font-medium text-gray-700">
+                API URL *
+              </Label>
               <Input
                 id="api_url"
                 value={formData.api_url}
@@ -162,10 +167,13 @@ export default function LLMsPage() {
                 }
                 placeholder="https://api.openai.com/v1/completions"
                 required
+                className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="api_key_secret">API Key Secret *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="api_key_secret" className="text-sm font-medium text-gray-700">
+                API Key Secret *
+              </Label>
               <Input
                 id="api_key_secret"
                 type="password"
@@ -175,9 +183,10 @@ export default function LLMsPage() {
                 }
                 placeholder="API key or secret reference"
                 required
+                className="mt-1"
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-3 pt-4">
               <Button
                 type="button"
                 variant="outline"

@@ -145,15 +145,17 @@ export default function AssetsPage() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="w-full max-w-[50%]">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
               {editingItem ? 'Edit Asset' : 'Add New Asset'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="asset_name">Name *</Label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="asset_name" className="text-sm font-medium text-gray-700">
+                Name *
+              </Label>
               <Input
                 id="asset_name"
                 value={formData.asset_name}
@@ -161,17 +163,20 @@ export default function AssetsPage() {
                   setFormData({ ...formData, asset_name: e.target.value })
                 }
                 required
+                className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="asset_type_id">Asset Type *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="asset_type_id" className="text-sm font-medium text-gray-700">
+                Asset Type *
+              </Label>
               <Select
                 value={formData.asset_type_id.toString()}
                 onValueChange={(value) =>
                   setFormData({ ...formData, asset_type_id: parseInt(value) })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select asset type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,8 +188,10 @@ export default function AssetsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                Description
+              </Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -192,9 +199,10 @@ export default function AssetsPage() {
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={3}
+                className="mt-1"
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-3 pt-4">
               <Button
                 type="button"
                 variant="outline"

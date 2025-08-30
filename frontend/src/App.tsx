@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
-import { Database, Coins, Calendar, FileText } from 'lucide-react';
 import { queryClient } from '@/services/queryClient';
 import { assetTypesApi, assetsApi, schedulesApi, cryptoForecastsApi } from '@/services/api';
 import Layout from '@/components/Layout';
@@ -78,103 +77,91 @@ const DashboardPage = () => {
         <p className="text-gray-600 mt-2">Overview of your crypto forecasting system</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Asset Types</h3>
-              <p className="text-3xl font-bold text-blue-600 mt-2">{assetTypes.length}</p>
+      <div style={{ paddingLeft: '0%' }}>
+        <div className="grid grid-cols-1 gap-6" style={{ width: '30%' }}>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Asset Types</h3>
+                <p className="text-3xl font-bold text-blue-600 mt-2">{assetTypes.length}</p>
+              </div>
             </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Database className="h-6 w-6 text-blue-600" />
-            </div>
+            <p className="text-sm text-gray-500 mt-4">Cryptocurrency categories</p>
           </div>
-          <p className="text-sm text-gray-500 mt-4">Cryptocurrency categories</p>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Assets</h3>
-              <p className="text-3xl font-bold text-green-600 mt-2">{assets.length}</p>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Assets</h3>
+                <p className="text-3xl font-bold text-green-600 mt-2">{assets.length}</p>
+              </div>
             </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <Coins className="h-6 w-6 text-green-600" />
-            </div>
+            <p className="text-sm text-gray-500 mt-4">Individual cryptocurrencies</p>
           </div>
-          <p className="text-sm text-gray-500 mt-4">Individual cryptocurrencies</p>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Active Schedules</h3>
-              <p className="text-3xl font-bold text-purple-600 mt-2">{activeSchedules.length}</p>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Active Schedules</h3>
+                <p className="text-3xl font-bold text-purple-600 mt-2">{activeSchedules.length}</p>
+              </div>
             </div>
-            <div className="p-3 bg-purple-100 rounded-full">
-              <Calendar className="h-6 w-6 text-purple-600" />
-            </div>
+            <p className="text-sm text-gray-500 mt-4">Running automated tasks</p>
           </div>
-          <p className="text-sm text-gray-500 mt-4">Running automated tasks</p>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Reports</h3>
-              <p className="text-3xl font-bold text-orange-600 mt-2">{reports.length}</p>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Reports</h3>
+                <p className="text-3xl font-bold text-orange-600 mt-2">{reports.length}</p>
+              </div>
             </div>
-            <div className="p-3 bg-orange-100 rounded-full">
-              <FileText className="h-6 w-6 text-orange-600" />
-            </div>
+            <p className="text-sm text-gray-500 mt-4">Generated forecasts</p>
           </div>
-          <p className="text-sm text-gray-500 mt-4">Generated forecasts</p>
-        </div>
-      </div>
 
-      {/* Recent Activity Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">Recent Assets</h3>
-          {assets.length > 0 ? (
-            <div className="space-y-3">
-              {assets.slice(0, 5).map((asset) => (
-                <div key={asset.asset_id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                  <div>
-                    <p className="font-medium">{asset.asset_name}</p>
-                    <p className="text-sm text-gray-500">{asset.description || 'No description'}</p>
+          {/* Recent Activity Section */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-lg font-semibold mb-4">Recent Assets</h3>
+            {assets.length > 0 ? (
+              <div className="space-y-3">
+                {assets.slice(0, 5).map((asset) => (
+                  <div key={asset.asset_id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                    <div>
+                      <p className="font-medium">{asset.asset_name}</p>
+                      <p className="text-sm text-gray-500">{asset.description || 'No description'}</p>
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      ID: {asset.asset_id}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-400">
-                    ID: {asset.asset_id}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">No assets created yet</p>
-          )}
-        </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No assets created yet</p>
+            )}
+          </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">System Status</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">API Connection</span>
-              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                Connected
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Database</span>
-              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                Online
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Active Schedules</span>
-              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                {activeSchedules.length} Running
-              </span>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-lg font-semibold mb-4">System Status</h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">API Connection</span>
+                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                  Connected
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Database</span>
+                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                  Online
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Active Schedules</span>
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  {activeSchedules.length} Running
+                </span>
+              </div>
             </div>
           </div>
         </div>

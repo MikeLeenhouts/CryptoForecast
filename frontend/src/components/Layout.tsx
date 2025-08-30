@@ -63,17 +63,17 @@ export default function Layout() {
       {/* Content Area with Sidebar and Main */}
       <div className="flex flex-1">
         {/* Fixed Sidebar */}
-        <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+        <div className="w-80 bg-white shadow-lg border-r border-gray-200 flex flex-col">
           {/* Navigation */}
           <nav className="flex-1 pt-0 overflow-y-auto">
-            <div className="space-y-1" style={{ paddingLeft: '15%' }}>
+            <div className="space-y-1" style={{ paddingLeft: '8%' }}>
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
                     key={item.href}
                     to={item.href}
-                    className={`flex items-center py-2 text-4xl font-normal rounded-lg transition-all duration-200 ${
+                    className={`flex items-center py-2 font-normal rounded-lg transition-all duration-200 ${
                       isActive
                         ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700 underline'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
@@ -99,7 +99,7 @@ export default function Layout() {
         <div className="flex-1 flex flex-col min-w-0">
           {/* Page Content */}
           <main className="flex-1 overflow-auto bg-gray-50">
-            <div className="py-6" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+            <div className="py-6" style={{ paddingLeft: '5%', paddingRight: '10%' }}>
               <Outlet />
             </div>
           </main>

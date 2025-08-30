@@ -1,3 +1,4 @@
+# tests/conftest.py
 import os
 import asyncio
 import pytest
@@ -5,6 +6,7 @@ import pytest_asyncio
 import httpx
 from dotenv import load_dotenv
 
+# Load .env.test if present (BASE_URL etc.)
 load_dotenv(".env.test")
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8080")
@@ -17,8 +19,8 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session")
 async def client():
-    async with httpx.AsyncClient(base_url=BASE_URL, timeout=15.0) as c:
-        # health check
+    async with httpx.AsyncClient(base_url=BASE_URL, timeout=20.0) as c:
+        # Health probe
         r = await c.get("/healthz")
         r.raise_for_status()
         yield c
@@ -26,10 +28,9 @@ async def client():
 @pytest.fixture(autouse=True)
 def reset_db():
     """
-    Reset strategy:
-    - If you expose a protected /test/reset endpoint (recommended) call it here.
-    - If not, delete by business keys to clean test data (idempotent).
-    Replace this placeholder with your preferred approach.
+    Reset strategy (idempotent):
+    - If you expose /test/reset, call it here.
+    - Otherwise, tests create unique content via timestamped names,
+    so they won't collide across runs.
     """
-    # Example (commented): await client.post("/test/reset")
     yield

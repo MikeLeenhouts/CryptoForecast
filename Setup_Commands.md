@@ -1,3 +1,16 @@
+## API Endpoints
+- __API Documentation__:    `http://localhost:8080/docs` (Swagger UI)
+- __Health Check__:         `http://localhost:8080/healthz`
+- __Frontend Dashboard__:   `http://localhost:5173/dashboard`
+## Project Links and Commands
+
+uvicorn app.main:app --host 0.0.0.0 --port 8080
+
+
+## Cline auto approve commands
+Auto-approve for this session: Approves all actions for the current VS Code session.
+Auto-approve for this workspace: Applies to the current project/workspace.
+Auto-approve for all future invocations: Globally enables auto-approval for all Cline actions.
 
 ## GIT Add Remote
 git remote add origin https://github.com/MikeLeenhouts/CryptoForecast
@@ -8,7 +21,9 @@ git push -u origin master
     docker-compose build <service_name>	
     docker-compose build --no-cache
     docker-compose up -d --build
-    docker compose up
+    docker-compose up
+    docker-compose down
+    docker-compose up -d --build
 
 # Run with Docker - Build the Docker Image:
     docker build -t express-static-app .

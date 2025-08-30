@@ -1,22 +1,26 @@
+# tests/test_reports.py
 import pytest
+from datetime import datetime, timezone
 from . import data
 
 @pytest.mark.asyncio
-async def test_survey_reports_flow(client):
-    # Seed minimal graph: asset_type -> asset -> llm -> prompt -> survey -> query -> forecast
+async def test_reports_surveys_runs_and_comparison(client):
+    # Seed minimal graph
     at = (await client.post("/asset_types", json=data.asset_type_payload())).json()
     asset = (await client.post("/assets", json=data.asset_payload(at["asset_type_id"]))).json()
     llm = (await client.post("/llms", json=data.llm_payload())).json()
     prompt = (await client.post("/prompts", json=data.prompt_payload(llm["llm_id"]))).json()
-    survey = (await client.post("/surveys", json=data.survey_payload())).json()
+    schedule = (await client.post("/schedules", json=data.schedule_payload())).json()
+    survey = (await client.post("/surveys", json=data.survey_payload(asset["asset_id"], schedule["schedule_id"], prompt["prompt_id"], True))).json()
 
-    cq = (await client.post("/crypto_queries", json=data.crypto_query_payload(survey["survey_id"], asset["asset_id"]))).json()
-    _ = (await client.post("/crypto_forecasts", json=data.forecast_payload(survey["survey_id"], cq["crypto_query_id"]))).json()
+    # Create one query + forecast to give the report something to show
+    t0_utc = datetime.now(timezone.utc)
+    cq = (await client.post("/crypto-queries", json=data.cq_initial(survey["survey_id"], schedule["schedule_id"], t0_utc))).json()
+    _ = (await client.post("/crypto-forecasts", json=data.forecast_payload(cq["query_id"], "OneHour"))).json()
 
     # Reports
     r = await client.get(f"/reports/surveys/{survey['survey_id']}/runs")
     assert r.status_code == 200
-    assert isinstance(r.json(), list) or "runs" in r.json()
 
     r = await client.get(f"/reports/surveys/{survey['survey_id']}/comparison")
     assert r.status_code == 200

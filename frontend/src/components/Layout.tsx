@@ -1,0 +1,102 @@
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import type { NavItem } from '@/types';
+
+const navigationItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+  },
+  {
+    title: 'Asset Types',
+    href: '/asset-types',
+  },
+  {
+    title: 'Assets',
+    href: '/assets',
+  },
+  {
+    title: 'LLMs',
+    href: '/llms',
+  },
+  {
+    title: 'Prompts',
+    href: '/prompts',
+  },
+  {
+    title: 'Surveys',
+    href: '/surveys',
+  },
+  {
+    title: 'Schedules',
+    href: '/schedules',
+  },
+  {
+    title: 'Queries',
+    href: '/queries',
+  },
+  {
+    title: 'Reports',
+    href: '/reports',
+  },
+];
+
+export default function Layout() {
+  const location = useLocation();
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Full Width Title Bar */}
+      <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center justify-center px-6 w-full">
+        <h1 className="text-2xl font-bold text-gray-900 underline">
+          Crypto Forecast Admin
+        </h1>
+      </header>
+
+      {/* Content Area with Sidebar and Main */}
+      <div className="flex flex-1">
+        {/* Fixed Sidebar */}
+        <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+          {/* Navigation */}
+          <nav className="flex-1 pt-0 overflow-y-auto">
+            <div className="space-y-1" style={{ paddingLeft: '15%' }}>
+              {navigationItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={`flex items-center py-2 text-4xl font-normal rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700 underline'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                    style={{ fontSize: '1.1rem' }}
+                  >
+                    {item.title}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="text-xs text-gray-500 text-center">
+              v1.0.0 - Admin Panel
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Page Content */}
+          <main className="flex-1 overflow-auto bg-gray-50">
+            <div className="py-6" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+              <Outlet />
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}

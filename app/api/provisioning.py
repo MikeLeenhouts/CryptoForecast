@@ -13,12 +13,12 @@ r = APIRouter(tags=["provisioning"])
 
 @r.post("/surveys", response_model=SurveyOut, status_code=201)
 async def create_survey(payload: SurveyCreate, s: AsyncSession = Depends(db)):
+    # Unique on (asset_id, schedule_id, prompt_id)
     dup = await s.scalar(
         select(func.count()).select_from(m.Survey).where(
-            m.Survey.asset_id==payload.asset_id,
-            m.Survey.schedule_id==payload.schedule_id,
-            m.Survey.prompt_id==payload.prompt_id,
-            m.Survey.llm_id==payload.llm_id
+            m.Survey.asset_id == payload.asset_id,
+            m.Survey.schedule_id == payload.schedule_id,
+            m.Survey.prompt_id == payload.prompt_id,
         )
     )
     if dup:
@@ -37,9 +37,9 @@ async def get_survey(survey_id: int, s: AsyncSession = Depends(db)):
 async def list_surveys(asset_id: int | None = None, is_active: bool | None = None, s: AsyncSession = Depends(db)):
     stmt = select(m.Survey)
     if asset_id is not None:
-        stmt = stmt.where(m.Survey.asset_id==asset_id)
+        stmt = stmt.where(m.Survey.asset_id == asset_id)
     if is_active is not None:
-        stmt = stmt.where(m.Survey.is_active==is_active)
+        stmt = stmt.where(m.Survey.is_active == is_active)
     rows = (await s.execute(stmt)).scalars().all()
     return rows
 
@@ -68,22 +68,58 @@ async def deactivate_survey(survey_id: int, s: AsyncSession = Depends(db)):
     if not obj: raise HTTPException(404, "not found")
     obj.is_active = False; await s.commit(); await s.refresh(obj); return obj
 
-# --- Runtime write-paths (per PDD)
+# ---- Runtime write-paths (per PDD)
+def _get_ids_for_runtime(s: AsyncSession, survey_id: int):
+    async def inner():
+        survey = await s.get(m.Survey, survey_id)
+        if not survey:
+            raise HTTPException(404, "survey not found")
+        schedule_id = survey.schedule_id
+        return survey, schedule_id
+    return inner
+
 @r.post("/surveys/{survey_id}/queries/initial", status_code=201)
 async def create_initial_query(survey_id: int, body: QueryCreateInitial, s: AsyncSession = Depends(db)):
-    q = m.CryptoQuery(survey_id=survey_id, query_type="Initial", query_timestamp=body.query_timestamp, initial_query_id=None)
+    survey, schedule_id = await _get_ids_for_runtime(s, survey_id)()
+    # map to 'Initial Baseline' query_type (planning uses query_type table)
+    qt_id = await s.scalar(select(m.QueryType.query_type_id).where(m.QueryType.query_type_name == "Initial Baseline"))
+    if not qt_id:
+        raise HTTPException(400, "query_type 'Initial Baseline' not found")
+
+    q = m.CryptoQuery(
+        survey_id=survey_id,
+        schedule_id=schedule_id,
+        query_type_id=qt_id,
+        initial_query_id=None,
+        scheduled_for_utc=sa.func.str_to_date(body.query_timestamp, "%Y-%m-%d %H:%i:%s"),
+        status="SUCCEEDED",
+        executed_at_utc=sa.func.utc_timestamp(),
+        result_json=None,
+    )
     s.add(q); await s.flush()
-    # 7 horizons expected by PDD, but we accept dict for flexibility
+
+    # 7 horizons expected by PDD; accept any dict for flexibility
     for horizon, payload in body.initial_forecasts.items():
         s.add(m.CryptoForecast(query_id=q.query_id, horizon_type=horizon, forecast_value=payload.model_dump()))
+
     await s.commit()
     return {"query_id": q.query_id, "forecasts": len(body.initial_forecasts)}
 
 @r.post("/surveys/{survey_id}/queries/followup", status_code=201)
 async def create_followup_query(survey_id: int, body: QueryCreateFollowUp, s: AsyncSession = Depends(db)):
+    survey, schedule_id = await _get_ids_for_runtime(s, survey_id)()
+    qt_id = await s.scalar(select(m.QueryType.query_type_id).where(m.QueryType.query_type_name == "Follow-up"))
+    if not qt_id:
+        raise HTTPException(400, "query_type 'Follow-up' not found")
+
     q = m.CryptoQuery(
-        survey_id=survey_id, query_type="FollowUp",
-        query_timestamp=body.query_timestamp, initial_query_id=body.initial_query_id
+        survey_id=survey_id,
+        schedule_id=schedule_id,
+        query_type_id=qt_id,
+        initial_query_id=body.initial_query_id,
+        scheduled_for_utc=sa.func.str_to_date(body.query_timestamp, "%Y-%m-%d %H:%i:%s"),
+        status="SUCCEEDED",
+        executed_at_utc=sa.func.utc_timestamp(),
     )
     s.add(q); await s.flush()
     s.add(m.CryptoForecast(query_id=q.query_id, horizon_type=body.horizon_type, forecast_value=body.forecast.model_dump()))

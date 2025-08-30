@@ -9,7 +9,7 @@ WORKDIR /app
 # Install a tiny HTTP client for container healthchecks (pick one)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Python deps
 COPY requirements.txt .
@@ -17,7 +17,7 @@ RUN pip install -r requirements.txt
 
 # App code and tests
 COPY app ./app
-COPY tests ./tests
+# COPY tests ./tests
 
 EXPOSE 8080
 # For dev you can add --reload; for stability leave it off

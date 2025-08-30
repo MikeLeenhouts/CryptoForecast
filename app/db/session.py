@@ -1,5 +1,9 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+# Load environment variables from .env file
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")  # e.g., mysql+aiomysql://user:pass@host:3306/db
 

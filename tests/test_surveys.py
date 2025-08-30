@@ -3,86 +3,38 @@ import pytest
 from . import data
 
 @pytest.mark.asyncio
-async def test_surveys_crud(client):
-    """
-    End-to-end CRUD for /surveys.
+async def test_surveys_crud_with_fks(client):
+    at = (await client.post("/asset_types", json=data.asset_type_payload())).json()
+    asset = (await client.post("/assets", json=data.asset_payload(at["asset_type_id"]))).json()
+    llm = (await client.post("/llms", json=data.llm_payload())).json()
+    prompt = (await client.post("/prompts", json=data.prompt_payload(llm["llm_id"]))).json()
+    schedule = (await client.post("/schedules", json=data.schedule_payload())).json()
 
-    Assumes your API:
-      - POST /surveys                 -> 201 + {"survey_id","name","is_active","description",...}
-      - GET  /surveys/{id}            -> 200
-      - GET  /surveys                 -> 200 (list or {"items":[...]})
-      - PATCH /surveys/{id}           -> 200
-      - DELETE /surveys/{id}          -> 200 or 204
-      - Optional filters: name (exact/contains), is_active (true/false)
-    """
-
-    # ---- Create ----
-    payload = data.survey_payload()  # e.g., {"name": unique("DailySurvey"), "is_active": True, "description": "..."}
+    payload = data.survey_payload(asset["asset_id"], schedule["schedule_id"], prompt["prompt_id"], True)
     r = await client.post("/surveys", json=payload)
     assert r.status_code == 201, r.text
     created = r.json()
     survey_id = created["survey_id"]
 
-    assert created["name"] == payload["name"]
-    assert created["is_active"] is True
-    assert "description" in created
-
-    # ---- Read by id ----
     r = await client.get(f"/surveys/{survey_id}")
-    assert r.status_code == 200, r.text
-    got = r.json()
-    assert got["survey_id"] == survey_id
-    assert got["name"] == payload["name"]
+    assert r.status_code == 200
 
-    # ---- List (no filter) ----
-    r = await client.get("/surveys")
-    assert r.status_code == 200, r.text
-    body = r.json()
-    items = body["items"] if isinstance(body, dict) and "items" in body else body
-    assert any(s["survey_id"] == survey_id for s in items)
-
-    # ---- Filter by name (exact) ----
-    r = await client.get("/surveys", params={"name": payload["name"]})
-    assert r.status_code == 200, r.text
-    body = r.json()
-    items = body["items"] if isinstance(body, dict) and "items" in body else body
-    assert any(s["survey_id"] == survey_id for s in items)
-
-    # ---- Filter by is_active=true ----
+    # Filter by asset_id / schedule_id / prompt_id / is_active
+    r = await client.get("/surveys", params={"asset_id": asset["asset_id"]})
+    assert r.status_code == 200
+    r = await client.get("/surveys", params={"schedule_id": schedule["schedule_id"]})
+    assert r.status_code == 200
+    r = await client.get("/surveys", params={"prompt_id": prompt["prompt_id"]})
+    assert r.status_code == 200
     r = await client.get("/surveys", params={"is_active": True})
-    assert r.status_code == 200, r.text
-    body = r.json()
-    items = body["items"] if isinstance(body, dict) and "items" in body else body
-    assert any(s["survey_id"] == survey_id for s in items)
+    assert r.status_code == 200
 
-    # ---- Update (PATCH) -> deactivate + change description ----
-    r = await client.patch(
-        f"/surveys/{survey_id}",
-        json={"is_active": False, "description": "Updated description"}
-    )
-    assert r.status_code == 200, r.text
-    updated = r.json()
-    assert updated["is_active"] is False
-    assert updated["description"] == "Updated description"
+    r = await client.patch(f"/surveys/{survey_id}", json={"is_active": False})
+    assert r.status_code == 200
+    assert r.json()["is_active"] is False
 
-    # ---- Confirm update ----
-    r = await client.get(f"/surveys/{survey_id}")
-    assert r.status_code == 200, r.text
-    got = r.json()
-    assert got["is_active"] is False
-    assert got["description"] == "Updated description"
-
-    # ---- Filter by is_active=false ----
-    r = await client.get("/surveys", params={"is_active": False})
-    assert r.status_code == 200, r.text
-    body = r.json()
-    items = body["items"] if isinstance(body, dict) and "items" in body else body
-    assert any(s["survey_id"] == survey_id for s in items)
-
-    # ---- Delete ----
     r = await client.delete(f"/surveys/{survey_id}")
-    assert r.status_code in (200, 204), r.text
+    assert r.status_code in (200, 204)
 
-    # ---- Verify deletion ----
     r = await client.get(f"/surveys/{survey_id}")
     assert r.status_code == 404

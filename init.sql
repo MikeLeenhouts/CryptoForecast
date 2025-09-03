@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS assets (
 CREATE TABLE IF NOT EXISTS llms (
     llm_id          INT AUTO_INCREMENT PRIMARY KEY,
     llm_name        VARCHAR(255) NOT NULL UNIQUE,
+    llm_model       VARCHAR(255) NOT NULL,
     api_url         VARCHAR(255) NOT NULL,
     api_key_secret  VARCHAR(255) NOT NULL,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -167,7 +168,7 @@ CREATE TABLE IF NOT EXISTS crypto_queries (
     status              ENUM('PLANNED','RUNNING','SUCCEEDED','FAILED','CANCELLED')
                         NOT NULL DEFAULT 'PLANNED',
     executed_at_utc     DATETIME NULL,
-    result_json         JSON NULL,
+    result_json         JSON NULL,  -- NOTE:  To be enhanced to include the four fields from results from get_asset_recommendation_OpenAI(..) call
     error_text          TEXT NULL,
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -223,8 +224,8 @@ WHERE at.asset_type_name = 'Cryptocurrency'
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
 -- 3) llms (mock)
-INSERT INTO llms (llm_name, api_url, api_key_secret)
-VALUES ('OpenAI GPT-4', 'https://api.openai.example/v1/chat/completions', 'DO_NOT_USE_IN_PROD')
+INSERT INTO llms (llm_name, llm_model, api_url, api_key_secret)
+VALUES ('OpenAI GPT-4', 'gpt-4o-2024-08-06', 'https://api.openai.example/v1/chat/completions', 'DO_NOT_USE_IN_PROD')
 ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
 
 -- 4) prompts (versioned)
@@ -422,7 +423,3 @@ VALUES
 -- FROM crypto_queries
 -- WHERE scheduled_for_utc <= @snapshot_utc
 -- ORDER BY scheduled_for_utc;
-
-
-
-

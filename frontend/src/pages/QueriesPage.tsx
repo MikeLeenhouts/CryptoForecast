@@ -1,16 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
 import DataTable from '@/components/DataTable';
-import { cryptoQueriesApi, surveysApi, assetsApi, schedulesApi, queryTypesApi } from '@/services/api';
-import type { CryptoQuery, Survey, Asset, Schedule, QueryType, TableColumn } from '@/types';
-import { useState } from 'react';
+import { cryptoQueriesApi, surveysApi, assetsApi, schedulesApi, queryTypesApi, assetTypesApi } from '@/services/api';
+import type { CryptoQuery, Survey, Asset, Schedule, QueryType, AssetType, TableColumn } from '@/types';
 
 export default function QueriesPage() {
-  const [viewingItem, setViewingItem] = useState<CryptoQuery | null>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  
-  const queryClient = useQueryClient();
 
   // Fetch queries
   const { data: queries = [], isLoading } = useQuery({
@@ -54,34 +47,26 @@ export default function QueriesPage() {
     },
   });
 
-  // Delete mutation
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => cryptoQueriesApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cryptoQueries'] });
+  const { data: assetTypes = [] } = useQuery({
+    queryKey: ['assetTypes'],
+    queryFn: async () => {
+      const response = await assetTypesApi.getAll();
+      return response.data;
     },
   });
 
-  const handleView = (item: CryptoQuery) => {
-    setViewingItem(item);
-    setIsViewDialogOpen(true);
-  };
-
-  const handleDelete = (item: CryptoQuery) => {
-    if (confirm('Are you sure you want to delete this query?')) {
-      deleteMutation.mutate(item.query_id);
-    }
-  };
 
   const getSurveyInfo = (surveyId: number) => {
     const survey = surveys.find((s: Survey) => s.survey_id === surveyId);
-    if (!survey) return { assetName: 'Unknown', scheduleName: 'Unknown' };
+    if (!survey) return { assetName: 'Unknown', assetTypeName: 'Unknown', scheduleName: 'Unknown' };
     
     const asset = assets.find((a: Asset) => a.asset_id === survey.asset_id);
     const schedule = schedules.find((s: Schedule) => s.schedule_id === survey.schedule_id);
+    const assetType = asset ? assetTypes.find((at: AssetType) => at.asset_type_id === asset.asset_type_id) : null;
     
     return {
       assetName: asset?.asset_name || 'Unknown',
+      assetTypeName: assetType?.asset_type_name || 'Unknown',
       scheduleName: schedule?.schedule_name || 'Unknown'
     };
   };
@@ -124,17 +109,27 @@ export default function QueriesPage() {
       },
     },
     {
-      key: 'schedule_id',
-      title: 'Schedule',
+      key: 'survey_id' as keyof CryptoQuery,
+      title: 'Asset_Type',
       render: (value, record) => {
-        const { scheduleName } = getSurveyInfo(record.survey_id);
-        return scheduleName;
+        const { assetTypeName } = getSurveyInfo(record.survey_id);
+        return assetTypeName;
       },
     },
     {
       key: 'query_type_id',
-      title: 'Type',
+      title: 'Query_Type',
       render: (value) => getQueryTypeName(value as number),
+    },
+    {
+      key: 'scheduled_for_utc',
+      title: 'Scheduled_For',
+      render: (value) => formatTimestamp(value as string),
+    },
+    {
+      key: 'executed_at_utc',
+      title: 'Executed_At',
+      render: (value) => value ? formatTimestamp(value as string) : '-',
     },
     {
       key: 'status',
@@ -146,14 +141,9 @@ export default function QueriesPage() {
       ),
     },
     {
-      key: 'scheduled_for_utc',
-      title: 'Scheduled For',
-      render: (value) => formatTimestamp(value as string),
-    },
-    {
-      key: 'executed_at_utc',
-      title: 'Executed At',
-      render: (value) => value ? formatTimestamp(value as string) : '-',
+      key: 'result_json',
+      title: 'results_json',
+      render: (value) => value ? JSON.stringify(value).substring(0, 50) + '...' : '-',
     },
   ];
 
@@ -171,108 +161,9 @@ export default function QueriesPage() {
         data={queries}
         columns={columns}
         loading={isLoading}
-        onView={handleView}
-        onDelete={handleDelete}
         searchPlaceholder="Search queries..."
       />
 
-      {/* View Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Query Details</DialogTitle>
-          </DialogHeader>
-          {viewingItem && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Query ID</label>
-                  <p className="text-lg font-semibold">#{viewingItem.query_id}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Type</label>
-                  <p className="text-lg">{getQueryTypeName(viewingItem.query_type_id)}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Asset</label>
-                  <p className="text-lg">{getSurveyInfo(viewingItem.survey_id).assetName}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Schedule</label>
-                  <p className="text-lg">{getSurveyInfo(viewingItem.survey_id).scheduleName}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Status</label>
-                  <p className="text-lg">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(viewingItem.status)}`}>
-                      {viewingItem.status}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Target Delay Hours</label>
-                  <p className="text-lg">{viewingItem.target_delay_hours || '-'}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Scheduled For</label>
-                  <p className="text-lg">{formatTimestamp(viewingItem.scheduled_for_utc)}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Executed At</label>
-                  <p className="text-lg">{viewingItem.executed_at_utc ? formatTimestamp(viewingItem.executed_at_utc) : 'Not executed'}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Survey ID</label>
-                  <p className="text-lg">#{viewingItem.survey_id}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Schedule ID</label>
-                  <p className="text-lg">#{viewingItem.schedule_id}</p>
-                </div>
-              </div>
-
-              {viewingItem.result_json && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Result JSON</label>
-                  <pre className="mt-1 p-3 bg-gray-100 rounded-md text-sm overflow-auto max-h-40">
-                    {JSON.stringify(viewingItem.result_json, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {viewingItem.error_text && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Error</label>
-                  <p className="mt-1 p-3 bg-red-50 text-red-800 rounded-md text-sm">
-                    {viewingItem.error_text}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsViewDialogOpen(false)}
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -25,6 +25,7 @@ class LLM(Base):
     __tablename__ = "llms"
     llm_id: Mapped[int] = mapped_column(primary_key=True)
     llm_name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    llm_model: Mapped[str] = mapped_column(String(255))
     api_url: Mapped[str] = mapped_column(String(255))
     api_key_secret: Mapped[str] = mapped_column(String(255))
 

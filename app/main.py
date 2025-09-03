@@ -13,6 +13,7 @@ from app.api.crud import build_crud_router
 from app.schemas import dto as D
 
 app = FastAPI(title="Crypto Forecasts API")
+# Force reload to pick up llm_model field changes
 
 # CORS (relax for dev; tighten for prod)
 app.add_middleware(

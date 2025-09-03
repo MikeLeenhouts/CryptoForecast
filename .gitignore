@@ -9,6 +9,8 @@ __pycache__/
 .eggs/
 *.log
 
+archive/
+
 # Virtual environments
 .venv/
 env/

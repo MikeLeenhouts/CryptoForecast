@@ -13,6 +13,7 @@ export default function LLMsPage() {
   const [editingItem, setEditingItem] = useState<LLM | null>(null);
   const [formData, setFormData] = useState<LLMForm>({
     llm_name: '',
+    llm_model: '',
     api_url: '',
     api_key_secret: '',
   });
@@ -60,6 +61,7 @@ export default function LLMsPage() {
   const resetForm = () => {
     setFormData({
       llm_name: '',
+      llm_model: '',
       api_url: '',
       api_key_secret: '',
     });
@@ -79,6 +81,7 @@ export default function LLMsPage() {
     setEditingItem(item);
     setFormData({
       llm_name: item.llm_name,
+      llm_model: item.llm_model,
       api_url: item.api_url,
       api_key_secret: '', // API key is not returned for security reasons
     });
@@ -104,6 +107,10 @@ export default function LLMsPage() {
     {
       key: 'llm_name',
       title: 'Name',
+    },
+    {
+      key: 'llm_model',
+      title: 'Model',
     },
     {
       key: 'api_url',
@@ -150,7 +157,22 @@ export default function LLMsPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, llm_name: e.target.value })
                 }
-                placeholder="e.g., gpt-4o"
+                placeholder="e.g., OpenAI GPT-4"
+                required
+                className="mt-1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="llm_model" className="text-sm font-medium text-gray-700">
+                Model *
+              </Label>
+              <Input
+                id="llm_model"
+                value={formData.llm_model}
+                onChange={(e) =>
+                  setFormData({ ...formData, llm_model: e.target.value })
+                }
+                placeholder="e.g., gpt-4o-2024-08-06"
                 required
                 className="mt-1"
               />

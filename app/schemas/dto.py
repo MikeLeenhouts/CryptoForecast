@@ -62,18 +62,22 @@ class AssetOut(BaseModel):
 
 class LLMCreate(BaseModel):
     llm_name: str
+    llm_model: str
     api_url: str
     api_key_secret: str
 
 class LLMUpdate(BaseModel):
     llm_name: Optional[str] = None
+    llm_model: Optional[str] = None
     api_url: Optional[str] = None
     api_key_secret: Optional[str] = None
 
 class LLMOut(BaseModel):
     llm_id: int
     llm_name: str
+    llm_model: str
     api_url: str
+    # Note: api_key_secret is intentionally excluded for security
     model_config = {"from_attributes": True}
 
 

@@ -32,6 +32,7 @@ export interface Asset {
 export interface LLM {
   llm_id: number;
   llm_name: string;
+  llm_model: string;
   api_url: string;
   // api_key_secret is not returned in responses for security
 }
@@ -112,6 +113,7 @@ export interface AssetForm {
 
 export interface LLMForm {
   llm_name: string;
+  llm_model: string;
   api_url: string;
   api_key_secret: string;
 }

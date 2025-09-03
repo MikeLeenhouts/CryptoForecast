@@ -5,7 +5,8 @@
 ## Project Links and Commands
 
 uvicorn app.main:app --host 0.0.0.0 --port 8080
-
+npm run dev
+cd frontend && npm run dev
 
 ## Cline auto approve commands
 Auto-approve for this session: Approves all actions for the current VS Code session.

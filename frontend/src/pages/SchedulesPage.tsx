@@ -137,7 +137,6 @@ export default function SchedulesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Schedules</h2>
-          <p className="text-gray-600 mt-2">Manage automated survey execution schedules</p>
         </div>
       </div>
 

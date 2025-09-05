@@ -124,7 +124,6 @@ export default function LLMsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">LLMs</h2>
-          <p className="text-gray-600 mt-2">Manage Large Language Model configurations for crypto forecasting</p>
         </div>
       </div>
 

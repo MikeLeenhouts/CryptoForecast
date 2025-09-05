@@ -136,7 +136,6 @@ export default function PromptsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Prompts</h2>
-          <p className="text-gray-600 mt-2">Manage AI prompts for crypto forecasting queries</p>
         </div>
       </div>
 

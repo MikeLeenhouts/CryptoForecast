@@ -152,7 +152,6 @@ export default function QueriesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Queries</h2>
-          <p className="text-gray-600 mt-2">View and manage crypto forecast queries</p>
         </div>
       </div>
 

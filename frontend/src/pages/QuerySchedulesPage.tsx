@@ -119,8 +119,13 @@ export default function QuerySchedulesPage() {
 
   const columns: TableColumn<QuerySchedule>[] = [
     {
+      key: 'schedule_id_raw' as keyof QuerySchedule,
+      title: 'Schedule ID',
+      render: (value, record) => record.schedule_id,
+    },
+    {
       key: 'query_schedule_id',
-      title: 'ID',
+      title: 'Query ID',
     },
     {
       key: 'schedule_id',
@@ -140,11 +145,11 @@ export default function QuerySchedulesPage() {
     },
     {
       key: 'delay_hours',
-      title: 'Delay (Hours)',
+      title: 'Query Delay (Hours)',
     },
     {
       key: 'paired_followup_delay_hours',
-      title: 'Followup Delay (Hours)',
+      title: 'Forecast Delay (Hours)',
       render: (value) => value || '-',
     },
   ];
@@ -154,7 +159,6 @@ export default function QuerySchedulesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Query Schedules</h2>
-          <p className="text-gray-600 mt-2">Configure query timing and followup schedules</p>
         </div>
       </div>
 

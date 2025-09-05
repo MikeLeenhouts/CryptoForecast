@@ -51,12 +51,15 @@ export default function DataTable<T extends Record<string, any>>({
       return value ? 'Yes' : 'No';
     }
     
-    if (typeof value === 'string' && value.includes('T')) {
-      // Likely a date string
+    // More precise date detection - check for ISO date format
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
       try {
-        return new Date(value).toLocaleDateString();
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString();
+        }
       } catch {
-        return String(value);
+        // Fall through to return as string
       }
     }
     

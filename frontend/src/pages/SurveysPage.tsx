@@ -5,8 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DataTable from '@/components/DataTable';
-import { surveysApi, assetsApi, schedulesApi, promptsApi } from '@/services/api';
-import type { Survey, SurveyForm, Asset, Schedule, Prompt, TableColumn } from '@/types';
+import { surveysApi, assetsApi, schedulesApi, promptsApi, llmsApi } from '@/services/api';
+import type { Survey, SurveyForm, Asset, Schedule, Prompt, LLM, TableColumn } from '@/types';
 
 export default function SurveysPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -55,6 +55,14 @@ export default function SurveysPage() {
     queryKey: ['prompts'],
     queryFn: async () => {
       const response = await promptsApi.getAll();
+      return response.data;
+    },
+  });
+
+  const { data: llms = [] } = useQuery({
+    queryKey: ['llms'],
+    queryFn: async () => {
+      const response = await llmsApi.getAll();
       return response.data;
     },
   });
@@ -144,6 +152,18 @@ export default function SurveysPage() {
       },
     },
     {
+      key: 'llm_name' as keyof Survey,
+      title: 'LLM',
+      render: (value, record) => {
+        const prompt = prompts.find((p: Prompt) => p.prompt_id === record.prompt_id);
+        if (prompt) {
+          const llm = llms.find((l: LLM) => l.llm_id === prompt.llm_id);
+          return llm ? llm.llm_name : 'Unknown LLM';
+        }
+        return 'Unknown';
+      },
+    },
+    {
       key: 'schedule_id',
       title: 'Schedule',
       render: (value) => {
@@ -179,7 +199,6 @@ export default function SurveysPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Surveys</h2>
-          <p className="text-gray-600 mt-2">Manage crypto forecasting surveys that combine assets, schedules, and prompts</p>
         </div>
       </div>
 

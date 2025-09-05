@@ -1,13 +1,26 @@
 from openai import OpenAI
 from enum import Enum
 from pydantic import BaseModel, Field
-
+from os import getenv
 
 asset_name="Bitcoin"
 prompt = "Provide a recommendation for the asset {asset_name}. Include a buy, sell, or hold recommendation, a confidence level between 0.0 and 1.0, a brief explanation, and any relevant references."
 model = "gpt-4o-2024-08-06"
+llm_name= ""
 
-client = OpenAI()
+LLM_API_KEY_ID = "OPENAI_API_KEY"
+LLM_API_KEY = str(getenv(LLM_API_KEY_ID))
+
+LLM_BASE_URL_ID = "LLM_BASE_URL"
+LLM_BASE_URL = str(getenv(LLM_BASE_URL_ID))
+
+# Initialize Grok client
+client = OpenAI(
+    api_key=LLM_API_KEY,
+    base_url="https://api.x.ai/v1"
+)
+
+
 
 class Recommendation(Enum):
     BUY = "Buy"

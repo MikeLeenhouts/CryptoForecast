@@ -115,7 +115,6 @@ export default function QueryTypesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Query Types</h2>
-          <p className="text-gray-600 mt-2">Manage different types of queries for crypto forecasting</p>
         </div>
       </div>
 

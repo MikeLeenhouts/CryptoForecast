@@ -216,6 +216,42 @@ INSERT INTO asset_types (asset_type_name, description)
 VALUES ('Cryptocurrency', 'Digital assets like BTC, ETH')
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Equities', 'Stocks, Shares,Ownership in a company')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Fixed_Income', 'Bonds, Treasuries, Debt instruments issued by governments, corporations, municipalities')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Real Estate', 'Residential, commercial, land, indirect via REITs (Real Estate Investment Trusts')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Precious_Metals', 'Commodity (gold, silver, platinum,…)')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Energy', 'Commodity(oil, natural gas,…)')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Agriculture', 'Commodity (corn, wheat, coffee,…)')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Collectibles', 'Art, Luxury Assets, Fine art, rare wines, classic cars, jewelry')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Foreign Exchange', 'Trading in global currencies')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO asset_types (asset_type_name, description)
+VALUES ('Derivatives', 'Options, Futures, Swaps,Contracts based on underlying assets (stocks, commodities, interest rates)')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
 -- 2) assets (Bitcoin)
 INSERT INTO assets (asset_type_id, asset_name, description)
 SELECT at.asset_type_id, 'Bitcoin', 'BTC'
@@ -223,18 +259,66 @@ FROM asset_types at
 WHERE at.asset_type_name = 'Cryptocurrency'
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
+INSERT INTO assets (asset_type_id, asset_name, description)
+SELECT at.asset_type_id, 'Ethereum', 'ETH'
+FROM asset_types at
+WHERE at.asset_type_name = 'Cryptocurrency'
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO assets (asset_type_id, asset_name, description)
+SELECT at.asset_type_id, 'Gold', 'XAU'
+FROM asset_types at
+WHERE at.asset_type_name = 'Precious_Metals'
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
 -- 3) llms (mock)
 INSERT INTO llms (llm_name, llm_model, api_url, api_key_secret)
-VALUES ('OpenAI GPT-4', 'gpt-4o-2024-08-06', 'https://api.openai.example/v1/chat/completions', 'DO_NOT_USE_IN_PROD')
+VALUES ('OpenAI', 'gpt-4', 'https://api.openai.com/v1', 'OPENAI_API_KEY')
+ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
+
+INSERT INTO llms (llm_name, llm_model, api_url, api_key_secret)
+VALUES ('Anthropic', 'claude-opus-4-1-20250805', 'https://api.anthropic.com/v1/', 'ANTHROPIC_API_KEY')
+ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
+
+INSERT INTO llms (llm_name, llm_model, api_url, api_key_secret)
+VALUES ('Grok', 'grok-4-0709', 'https://docs.x.ai/', 'GROK_API_KEY')
+ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
+
+INSERT INTO llms (llm_name, llm_model, api_url, api_key_secret)
+VALUES ('Gemini', 'gemini-2.5-pro', 'https://generativelanguage.googleapis.com', 'GEMINI_API_KEY')
 ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
 
 -- 4) prompts (versioned)
 INSERT INTO prompts (llm_id, prompt_text, prompt_version)
 SELECT l.llm_id,
-       'Given the asset context, provide a baseline market analysis.',
-       1
+    'Given the asset context, provide a baseline market analysis.',
+    1
 FROM llms l
-WHERE l.llm_name = 'OpenAI GPT-4'
+WHERE l.llm_name = 'OpenAI'
+ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
+
+INSERT INTO prompts (llm_id, prompt_text, prompt_version)
+SELECT l.llm_id,
+    'Given the asset context, provide a baseline market analysis.',
+    1
+FROM llms l
+WHERE l.llm_name = 'Anthropic'
+ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
+
+INSERT INTO prompts (llm_id, prompt_text, prompt_version)
+SELECT l.llm_id,
+    'Given the asset context, provide a baseline market analysis.',
+    1
+FROM llms l
+WHERE l.llm_name = 'Grok'
+ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
+
+INSERT INTO prompts (llm_id, prompt_text, prompt_version)
+SELECT l.llm_id,
+    'Given the asset context, provide a baseline market analysis.',
+    1
+FROM llms l
+WHERE l.llm_name = 'Gemini'
 ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 -- 5) query_type
@@ -245,62 +329,67 @@ INSERT IGNORE INTO query_type (query_type_name, description) VALUES
 
 -- 6) schedules (T0 at 01:00 local; America/Chicago)
 INSERT INTO schedules (schedule_name, schedule_version, initial_query_time, timezone, description)
-VALUES ('Daily-1AM', 1, '01:00:00', 'America/Chicago', 'Baseline at 1AM local (CDT)')
+VALUES ('10-Day_6-Follow-ups', 1, '01:00:00', 'America/Chicago', '10 day survey schedule with 6 follow-up queries')
 ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+INSERT INTO schedules (schedule_name, schedule_version, initial_query_time, timezone, description)
+VALUES ('14-Day_7-Follow-ups', 1, '01:00:00', 'America/Chicago', '14 day survey schedule with 7 follow-up queries')
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
 
 -- 7) query_schedules (paired Baseline Forecast rows at T0)
 --    Clear prior steps for this schedule to avoid duplicates.
 DELETE qs FROM query_schedules qs
 JOIN schedules s ON s.schedule_id = qs.schedule_id
-WHERE s.schedule_name = 'Daily-1AM';
+WHERE s.schedule_name = '10-Day_6-Follow-ups';
 
 --    Initial Baseline @ T0
 INSERT IGNORE INTO query_schedules (schedule_id, query_type_id, delay_hours, paired_followup_delay_hours)
 SELECT s.schedule_id, qt.query_type_id, 0, NULL
 FROM schedules s
 JOIN query_type qt ON qt.query_type_name = 'Initial Baseline'
-WHERE s.schedule_name = 'Daily-1AM';
+WHERE s.schedule_name = '10-Day_6-Follow-ups';
 
 --    Baseline Forecast @ T0, one per follow-up target
 INSERT IGNORE INTO query_schedules (schedule_id, query_type_id, delay_hours, paired_followup_delay_hours)
 SELECT s.schedule_id, qt.query_type_id, 0, d.h
 FROM schedules s
 JOIN (SELECT 1 h UNION ALL SELECT 6 UNION ALL SELECT 11
-      UNION ALL SELECT 24 UNION ALL SELECT 120 UNION ALL SELECT 240) d
+    UNION ALL SELECT 24 UNION ALL SELECT 120 UNION ALL SELECT 240) d
 JOIN query_type qt ON qt.query_type_name = 'Baseline Forecast'
-WHERE s.schedule_name = 'Daily-1AM';
+WHERE s.schedule_name = '10-Day_6-Follow-ups';
 
 --    Follow-ups at their delays
 INSERT IGNORE INTO query_schedules (schedule_id, query_type_id, delay_hours, paired_followup_delay_hours)
 SELECT s.schedule_id, qt.query_type_id, d.h, NULL
 FROM schedules s
 JOIN (SELECT 1 h UNION ALL SELECT 6 UNION ALL SELECT 11
-      UNION ALL SELECT 24 UNION ALL SELECT 120 UNION ALL SELECT 240) d
+    UNION ALL SELECT 24 UNION ALL SELECT 120 UNION ALL SELECT 240) d
 JOIN query_type qt ON qt.query_type_name = 'Follow-up'
-WHERE s.schedule_name = 'Daily-1AM';
+WHERE s.schedule_name = '10-Day_6-Follow-ups';
 
 -- 8) surveys (activate for two days, then could be deactivated later; seed leaves TRUE)
 INSERT INTO surveys (asset_id, schedule_id, prompt_id, is_active)
 SELECT a.asset_id, s.schedule_id, p.prompt_id, TRUE
 FROM assets a
-JOIN schedules s ON s.schedule_name = 'Daily-1AM'
+JOIN schedules s ON s.schedule_name = '10-Day_6-Follow-ups'
 JOIN prompts p   ON p.prompt_version = 1
 WHERE a.asset_name = 'Bitcoin'
 ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
 
 -- Convenience IDs
 SET @asset_id = (SELECT asset_id FROM assets WHERE asset_name='Bitcoin' LIMIT 1);
-SET @schedule_id = (SELECT schedule_id FROM schedules WHERE schedule_name='Daily-1AM' LIMIT 1);
+SET @schedule_id = (SELECT schedule_id FROM schedules WHERE schedule_name='10-Day_6-Follow-ups' LIMIT 1);
 SET @prompt_id = (
-  SELECT p.prompt_id
-  FROM prompts p JOIN llms l ON l.llm_id = p.llm_id
-  WHERE p.prompt_version = 1 AND l.llm_name = 'OpenAI GPT-4'
-  LIMIT 1
+    SELECT p.prompt_id
+    FROM prompts p JOIN llms l ON l.llm_id = p.llm_id
+    WHERE p.prompt_version = 1 AND l.llm_name = 'OpenAI'
+    LIMIT 1
 );
 SET @survey_id = (
-  SELECT survey_id FROM surveys
-  WHERE asset_id=@asset_id AND schedule_id=@schedule_id AND prompt_id=@prompt_id
-  LIMIT 1
+    SELECT survey_id FROM surveys
+    WHERE asset_id=@asset_id AND schedule_id=@schedule_id AND prompt_id=@prompt_id
+    LIMIT 1
 );
 
 -- Helper: type ids
@@ -326,40 +415,40 @@ INSERT INTO crypto_queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 VALUES
 (@survey_id, @schedule_id, @qt_baseline, NULL, @d1_t0_utc, 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL 1 MINUTE),
- JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.72), NULL);
+JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.72), NULL);
 
 -- Day 1: Baseline Forecast @ T0 (one per follow-up target)
 INSERT INTO crypto_queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 SELECT
-  @survey_id, @schedule_id, @qt_base_fore,
-  qs.paired_followup_delay_hours AS target_delay_hours,
-  @d1_t0_utc AS scheduled_for_utc,
-  'SUCCEEDED' AS status,
-  DATE_ADD(@d1_t0_utc, INTERVAL 2 MINUTE) AS executed_at_utc,
-  JSON_OBJECT('forecast','BF@T0','target_delay_hours', qs.paired_followup_delay_hours),
-  NULL
+    @survey_id, @schedule_id, @qt_base_fore,
+    qs.paired_followup_delay_hours AS target_delay_hours,
+    @d1_t0_utc AS scheduled_for_utc,
+    'SUCCEEDED' AS status,
+    DATE_ADD(@d1_t0_utc, INTERVAL 2 MINUTE) AS executed_at_utc,
+    JSON_OBJECT('forecast','BF@T0','target_delay_hours', qs.paired_followup_delay_hours),
+    NULL
 FROM query_schedules qs
 WHERE qs.schedule_id = @schedule_id
-  AND qs.query_type_id = @qt_base_fore
-  AND qs.delay_hours = 0;
+    AND qs.query_type_id = @qt_base_fore
+    AND qs.delay_hours = 0;
 
 -- Day 1: Follow-ups @ +1h, +6h, +11h, +1d, +5d, +10d (all done by snapshot)
 INSERT INTO crypto_queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 VALUES
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL   1 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL   1 HOUR  + 30 SECOND),
- JSON_OBJECT('h','+1h',  'delta','small up','price',65120), NULL),
+JSON_OBJECT('h','+1h',  'delta','small up','price',65120), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL   6 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL   6 HOUR  + 50 SECOND),
- JSON_OBJECT('h','+6h',  'delta','flat',    'price',65080), NULL),
+JSON_OBJECT('h','+6h',  'delta','flat',    'price',65080), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL  11 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL  11 HOUR  + 45 SECOND),
- JSON_OBJECT('h','+11h', 'delta','down',    'price',64890), NULL),
+JSON_OBJECT('h','+11h', 'delta','down',    'price',64890), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL  24 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL  24 HOUR  + 50 SECOND),
- JSON_OBJECT('h','+1d',  'delta','recover','price',64990), NULL),
+JSON_OBJECT('h','+1d',  'delta','recover','price',64990), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL 120 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL 120 HOUR + 40 SECOND),
- JSON_OBJECT('h','+5d',  'delta','up',      'price',65550), NULL),
+JSON_OBJECT('h','+5d',  'delta','up',      'price',65550), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL 240 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL 240 HOUR + 40 SECOND),
- JSON_OBJECT('h','+10d', 'delta','steady',  'price',65620), NULL);
+JSON_OBJECT('h','+10d', 'delta','steady',  'price',65620), NULL);
 
 -- --------------------------
 -- Day 2: Initial Baseline @ T0
@@ -368,40 +457,40 @@ INSERT INTO crypto_queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 VALUES
 (@survey_id, @schedule_id, @qt_baseline, NULL, @d2_t0_utc, 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL 1 MINUTE),
- JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.70), NULL);
+JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.70), NULL);
 
 -- Day 2: Baseline Forecast @ T0 (one per follow-up target)
 INSERT INTO crypto_queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 SELECT
-  @survey_id, @schedule_id, @qt_base_fore,
-  qs.paired_followup_delay_hours AS target_delay_hours,
-  @d2_t0_utc AS scheduled_for_utc,
-  'SUCCEEDED' AS status,
-  DATE_ADD(@d2_t0_utc, INTERVAL 2 MINUTE) AS executed_at_utc,
-  JSON_OBJECT('forecast','BF@T0','target_delay_hours', qs.paired_followup_delay_hours),
-  NULL
+    @survey_id, @schedule_id, @qt_base_fore,
+    qs.paired_followup_delay_hours AS target_delay_hours,
+    @d2_t0_utc AS scheduled_for_utc,
+    'SUCCEEDED' AS status,
+    DATE_ADD(@d2_t0_utc, INTERVAL 2 MINUTE) AS executed_at_utc,
+    JSON_OBJECT('forecast','BF@T0','target_delay_hours', qs.paired_followup_delay_hours),
+    NULL
 FROM query_schedules qs
 WHERE qs.schedule_id = @schedule_id
-  AND qs.query_type_id = @qt_base_fore
-  AND qs.delay_hours = 0;
+    AND qs.query_type_id = @qt_base_fore
+    AND qs.delay_hours = 0;
 
 -- Day 2: Follow-ups @ +1h, +6h, +11h, +1d, +5d, +10d (all done by snapshot)
 INSERT INTO crypto_queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 VALUES
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL   1 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL   1 HOUR  + 30 SECOND),
- JSON_OBJECT('h','+1h',  'delta','small up','price',64910), NULL),
+JSON_OBJECT('h','+1h',  'delta','small up','price',64910), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL   6 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL   6 HOUR  + 50 SECOND),
- JSON_OBJECT('h','+6h',  'delta','flat',    'price',64900), NULL),
+JSON_OBJECT('h','+6h',  'delta','flat',    'price',64900), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL  11 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL  11 HOUR  + 45 SECOND),
- JSON_OBJECT('h','+11h', 'delta','down',    'price',64780), NULL),
+JSON_OBJECT('h','+11h', 'delta','down',    'price',64780), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL  24 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL  24 HOUR  + 50 SECOND),
- JSON_OBJECT('h','+1d',  'delta','down',    'price',64620), NULL),
+JSON_OBJECT('h','+1d',  'delta','down',    'price',64620), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL 120 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL 120 HOUR + 40 SECOND),
- JSON_OBJECT('h','+5d',  'delta','up',      'price',65400), NULL),
+JSON_OBJECT('h','+5d',  'delta','up',      'price',65400), NULL),
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL 240 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL 240 HOUR + 40 SECOND),
- JSON_OBJECT('h','+10d', 'delta','steady',  'price',65510), NULL);
+JSON_OBJECT('h','+10d', 'delta','steady',  'price',65510), NULL);
 
 -- =====================================================================
 -- Sanity checks (optional; comment out for production)

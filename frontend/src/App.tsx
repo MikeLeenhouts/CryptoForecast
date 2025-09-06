@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { queryClient } from '@/services/queryClient';
-import { assetTypesApi, assetsApi, schedulesApi, cryptoForecastsApi } from '@/services/api';
+import { assetsApi, schedulesApi, surveysApi, promptsApi, llmsApi, assetTypesApi } from '@/services/api';
 import Layout from '@/components/Layout';
 import AssetTypesPage from '@/pages/AssetTypesPage';
 import AssetsPage from '@/pages/AssetsPage';
@@ -16,19 +16,6 @@ import ReportsPage from '@/pages/ReportsPage';
 
 // Dashboard component with real data
 const DashboardPage = () => {
-  const { data: assetTypes = [] } = useQuery({
-    queryKey: ['assetTypes'],
-    queryFn: async () => {
-      try {
-        const response = await assetTypesApi.getAll();
-        return response.data;
-      } catch (error) {
-        console.error('Failed to fetch asset types:', error);
-        return [];
-      }
-    },
-  });
-
   const { data: assets = [] } = useQuery({
     queryKey: ['assets'],
     queryFn: async () => {
@@ -55,113 +42,245 @@ const DashboardPage = () => {
     },
   });
 
-  const { data: reports = [] } = useQuery({
-    queryKey: ['cryptoForecasts'],
+
+  const { data: surveys = [] } = useQuery({
+    queryKey: ['surveys'],
     queryFn: async () => {
       try {
-        const response = await cryptoForecastsApi.getAll();
+        const response = await surveysApi.getAll();
         return response.data;
       } catch (error) {
-        console.error('Failed to fetch forecasts:', error);
+        console.error('Failed to fetch surveys:', error);
         return [];
       }
     },
   });
 
-  const activeSchedules = schedules; // All schedules for now, since Schedule type doesn't have is_active
+  const { data: prompts = [] } = useQuery({
+    queryKey: ['prompts'],
+    queryFn: async () => {
+      try {
+        const response = await promptsApi.getAll();
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch prompts:', error);
+        return [];
+      }
+    },
+  });
+
+  const { data: llms = [] } = useQuery({
+    queryKey: ['llms'],
+    queryFn: async () => {
+      try {
+        const response = await llmsApi.getAll();
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch llms:', error);
+        return [];
+      }
+    },
+  });
+
+  const { data: assetTypes = [] } = useQuery({
+    queryKey: ['assetTypes'],
+    queryFn: async () => {
+      try {
+        const response = await assetTypesApi.getAll();
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch asset types:', error);
+        return [];
+      }
+    },
+  });
+
+  const activeSurveys = surveys.filter(survey => survey.is_active);
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold">Dashboard     xx</h2>
-        <p className="text-gray-600 mt-2">Overview of your crypto forecasting system</p>
+        <h2 className="text-xl font-bold">Dashboard</h2>
       </div>
       
-      <div style={{ paddingLeft: '0%' }}>
-        <div className="grid grid-cols-1 gap-6" style={{ width: '30%' }}>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Asset Types</h3>
-                <p className="text-3xl font-bold text-blue-600 mt-2">{assetTypes.length}</p>
-              </div>
+      <div style={{ paddingLeft: '%' }}>
+        <div className="grid grid-cols-1 gap-6" style={{ width: '70%' }}>
+          <div className="bg-white pt-0 px-6 pb-3 rounded-lg shadow-sm border border-gray-200">
+          <div className="text-3xl font-bold text-gray-800 mb-4" style={{ fontWeight: 600, fontSize: '20px', lineHeight: 1.1, fontStyle: 'normal' }}>Active Surveys</div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LLM</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {activeSurveys.map((survey) => {
+                    const asset = assets.find(a => a.asset_id === survey.asset_id);
+                    const prompt = prompts.find(p => p.prompt_id === survey.prompt_id);
+                    const llm = llms.find(l => l.llm_id === prompt?.llm_id);
+                    const schedule = schedules.find(s => s.schedule_id === survey.schedule_id);
+                    
+                    return (
+                      <tr key={survey.survey_id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{survey.survey_id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{asset?.asset_name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{llm?.llm_name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{schedule?.schedule_name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full ${survey.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {survey.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {activeSurveys.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No active surveys found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-            <p className="text-sm text-gray-500 mt-4">Cryptocurrency categories</p>
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Assets</h3>
-                <p className="text-3xl font-bold text-green-600 mt-2">{assets.length}</p>
-              </div>
+          <div className="bg-white pt-0 px-6 pb-3 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-3xl font-bold text-gray-800 mb-4" style={{ fontWeight: 600, fontSize: '20px', lineHeight: 1.1, fontStyle: 'normal' }}>LLMs</div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">API URL</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {llms.map((llm) => (
+                    <tr key={llm.llm_id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{llm.llm_id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{llm.llm_name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{llm.llm_model}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{llm.api_url}</td>
+                    </tr>
+                  ))}
+                  {llms.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">No LLMs found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-            <p className="text-sm text-gray-500 mt-4">Individual cryptocurrencies</p>
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Active Schedules</h3>
-                <p className="text-3xl font-bold text-purple-600 mt-2">{activeSchedules.length}</p>
-              </div>
+          <div className="bg-white pt-0 px-6 pb-3 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-3xl font-bold text-gray-800 mb-4" style={{ fontWeight: 600, fontSize: '20px', lineHeight: 1.1, fontStyle: 'normal' }}>Schedules</div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Version</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Query Time</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timezone</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {schedules.map((schedule) => (
+                    <tr key={schedule.schedule_id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{schedule.schedule_id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{schedule.schedule_name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{schedule.schedule_version}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{schedule.initial_query_time}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{schedule.timezone}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{schedule.description || 'No description'}</td>
+                    </tr>
+                  ))}
+                  {schedules.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">No schedules found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-            <p className="text-sm text-gray-500 mt-4">Running automated tasks</p>
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Reports</h3>
-                <p className="text-3xl font-bold text-orange-600 mt-2">{reports.length}</p>
-              </div>
+          <div className="bg-white pt-0 px-6 pb-3 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-3xl font-bold text-gray-800 mb-4" style={{ fontWeight: 600, fontSize: '20px', lineHeight: 1.1, fontStyle: 'normal' }}>Assets</div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset Type</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {assets.map((asset) => {
+                    const assetType = assetTypes.find(type => type.asset_type_id === asset.asset_type_id);
+                    
+                    return (
+                      <tr key={asset.asset_id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{asset.asset_id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{asset.asset_name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{assetType?.asset_type_name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{asset.description || 'No description'}</td>
+                      </tr>
+                    );
+                  })}
+                  {assets.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">No assets found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-            <p className="text-sm text-gray-500 mt-4">Generated forecasts</p>
           </div>
 
-          {/* Recent Activity Section */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold mb-4">Recent Assets</h3>
-            {assets.length > 0 ? (
-              <div className="space-y-3">
-                {assets.slice(0, 5).map((asset) => (
-                  <div key={asset.asset_id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                    <div>
-                      <p className="font-medium">{asset.asset_name}</p>
-                      <p className="text-sm text-gray-500">{asset.description || 'No description'}</p>
-                    </div>
-                    <span className="text-xs text-gray-400">
-                      ID: {asset.asset_id}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">No assets created yet</p>
-            )}
-          </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold mb-4">System Status</h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">API Connection</span>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Connected
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Database</span>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Online
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Active Schedules</span>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  {activeSchedules.length} Running
-                </span>
-              </div>
+          <div className="bg-white pt-0 px-6 pb-3 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-3xl font-bold text-gray-800 mb-4" style={{ fontWeight: 600, fontSize: '20px', lineHeight: 1.1, fontStyle: 'normal' }}>System Status</div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '200px' }}>Component</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '150px' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">API Connection</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        Connected
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Database</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        Online
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

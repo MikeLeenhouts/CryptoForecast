@@ -140,16 +140,18 @@ export default function SchedulesPage() {
         </div>
       </div>
 
-      <DataTable
-        title="Survey Schedules"
-        data={schedules}
-        columns={columns}
-        loading={isLoading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search schedules..."
-      />
+      <div className="w-[80%]">
+        <DataTable
+          title="Survey Schedules"
+          data={schedules}
+          columns={columns}
+          loading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchPlaceholder="Search schedules..."
+        />
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-[50%]">

@@ -162,16 +162,18 @@ export default function QuerySchedulesPage() {
         </div>
       </div>
 
-      <DataTable
-        title="Query Schedules"
-        data={querySchedules}
-        columns={columns}
-        loading={isLoading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search query schedules..."
-      />
+      <div className="w-[80%]">
+        <DataTable
+          title="Query Schedules"
+          data={querySchedules}
+          columns={columns}
+          loading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchPlaceholder="Search query schedules..."
+        />
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-[50%]">

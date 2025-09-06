@@ -133,7 +133,7 @@ export default function AssetsPage() {
         <h2 className="text-2xl font-bold">Assets</h2>
       </div>
 
-      <div className="w-[70%]">
+      <div className="w-[80%]">
         <DataTable
           title="Assets"
           data={assets}

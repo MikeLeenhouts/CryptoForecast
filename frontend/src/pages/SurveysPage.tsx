@@ -173,10 +173,17 @@ export default function SurveysPage() {
     },
     {
       key: 'prompt_id',
-      title: 'Prompt',
+      title: 'Prompt ID',
       render: (value) => {
-        const prompt = prompts.find((p: Prompt) => p.prompt_id === value);
-        return prompt ? `Prompt ${prompt.prompt_id} (v${prompt.prompt_version})` : 'Unknown';
+        return value;
+      },
+    },
+    {
+      key: 'prompt_version' as keyof Survey,
+      title: 'Version',
+      render: (value, record) => {
+        const prompt = prompts.find((p: Prompt) => p.prompt_id === record.prompt_id);
+        return prompt ? `v${prompt.prompt_version}` : 'Unknown';
       },
     },
     {
@@ -202,16 +209,18 @@ export default function SurveysPage() {
         </div>
       </div>
 
-      <DataTable
-        title="Crypto Surveys"
-        data={surveys}
-        columns={columns}
-        loading={isLoading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search surveys..."
-      />
+      <div className="w-[80%]">
+        <DataTable
+          title="Crypto Surveys"
+          data={surveys}
+          columns={columns}
+          loading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchPlaceholder="Search surveys..."
+        />
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-[50%]">

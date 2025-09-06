@@ -118,16 +118,18 @@ export default function QueryTypesPage() {
         </div>
       </div>
 
-      <DataTable
-        title="Query Types"
-        data={queryTypes}
-        columns={columns}
-        loading={isLoading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search query types..."
-      />
+      <div className="w-[70%]">
+        <DataTable
+          title="Query Types"
+          data={queryTypes}
+          columns={columns}
+          loading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchPlaceholder="Search query types..."
+        />
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-[50%]">

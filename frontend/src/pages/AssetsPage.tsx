@@ -133,16 +133,18 @@ export default function AssetsPage() {
         <h2 className="text-2xl font-bold">Assets</h2>
       </div>
 
-      <DataTable
-        title="Assets"
-        data={assets}
-        columns={columns}
-        loading={isLoading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search assets..."
-      />
+      <div className="w-[70%]">
+        <DataTable
+          title="Assets"
+          data={assets}
+          columns={columns}
+          loading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchPlaceholder="Search assets..."
+        />
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-[50%]">

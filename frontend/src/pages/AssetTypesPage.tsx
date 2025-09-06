@@ -113,16 +113,18 @@ export default function AssetTypesPage() {
         <h2 className="text-2xl font-bold">Asset Types</h2>
       </div>
 
-      <DataTable
-        title="Asset Types"
-        data={assetTypes}
-        columns={columns}
-        loading={isLoading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search asset types..."
-      />
+      <div className="w-[70%]">
+        <DataTable
+          title="Asset Types"
+          data={assetTypes}
+          columns={columns}
+          loading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchPlaceholder="Search asset types..."
+        />
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-[50%]">

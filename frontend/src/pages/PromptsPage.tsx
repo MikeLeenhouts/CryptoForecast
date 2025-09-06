@@ -139,16 +139,18 @@ export default function PromptsPage() {
         </div>
       </div>
 
-      <DataTable
-        title="AI Prompts"
-        data={prompts}
-        columns={columns}
-        loading={isLoading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search prompts..."
-      />
+      <div className="w-[70%]">
+        <DataTable
+          title="Prompts"
+          data={prompts}
+          columns={columns}
+          loading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchPlaceholder="Search prompts..."
+        />
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-[50%]">

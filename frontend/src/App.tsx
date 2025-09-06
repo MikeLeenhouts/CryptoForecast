@@ -255,25 +255,25 @@ const DashboardPage = () => {
           <div className="bg-white pt-0 px-6 pb-3 rounded-lg shadow-sm border border-gray-200">
             <div className="text-3xl font-bold text-gray-800 mb-4" style={{ fontWeight: 600, fontSize: '20px', lineHeight: 1.1, fontStyle: 'normal' }}>System Status</div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="divide-y divide-gray-200" style={{ width: 'auto' }}>
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '200px' }}>Component</th>
-                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '150px' }}>Status</th>
+                    <th className="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '140px' }}>Component</th>
+                    <th className="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '120px' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">API Connection</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">API Connection</td>
+                    <td className="px-3 py-4 whitespace-nowrap">
                       <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
                         Connected
                       </span>
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Database</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">Database</td>
+                    <td className="px-3 py-4 whitespace-nowrap">
                       <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
                         Online
                       </span>

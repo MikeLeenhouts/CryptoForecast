@@ -127,16 +127,18 @@ export default function LLMsPage() {
         </div>
       </div>
 
-      <DataTable
-        title="LLM Configurations"
-        data={llms}
-        columns={columns}
-        loading={isLoading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search LLM configurations..."
-      />
+      <div className="w-[70%]">
+        <DataTable
+          title="LLM Configurations"
+          data={llms}
+          columns={columns}
+          loading={isLoading}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchPlaceholder="Search LLM configurations..."
+        />
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-[50%]">

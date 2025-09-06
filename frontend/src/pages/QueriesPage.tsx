@@ -109,7 +109,7 @@ export default function QueriesPage() {
       },
     },
     {
-      key: 'survey_id' as keyof CryptoQuery,
+      key: 'asset_type' as keyof CryptoQuery,
       title: 'Asset_Type',
       render: (value, record) => {
         const { assetTypeName } = getSurveyInfo(record.survey_id);
@@ -141,9 +141,32 @@ export default function QueriesPage() {
       ),
     },
     {
-      key: 'result_json',
-      title: 'results_json',
-      render: (value) => value ? JSON.stringify(value).substring(0, 50) + '...' : '-',
+      key: 'recommendation',
+      title: 'Recommendation',
+      render: (value) => {
+        if (!value) return '-';
+        const str = value as string;
+        return str.length > 30 ? str.substring(0, 30) + '...' : str;
+      },
+    },
+    {
+      key: 'confidence',
+      title: 'Confidence',
+      render: (value) => value !== null && value !== undefined ? `${(value as number * 100).toFixed(1)}%` : '-',
+    },
+    {
+      key: 'rationale',
+      title: 'Rationale',
+      render: (value) => {
+        if (!value) return '-';
+        const str = value as string;
+        return str.length > 40 ? str.substring(0, 40) + '...' : str;
+      },
+    },
+    {
+      key: 'source',
+      title: 'Source',
+      render: (value) => (value as string) || '-',
     },
   ];
 

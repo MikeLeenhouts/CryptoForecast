@@ -232,7 +232,12 @@ class CryptoQueryCreate(BaseModel):
     status: Optional[QueryStatus] = "PLANNED"
     executed_at_utc: Optional[datetime.datetime] = None
     result_json: Optional[Dict[str, Any]] = None
-    error_text: Optional[str] = None
+    
+    # NEW: Four additional fields for query recommendations
+    recommendation: Optional[Action] = None
+    confidence: Optional[float] = None
+    rationale: Optional[str] = None
+    source: Optional[str] = None
 
 class CryptoQueryUpdate(BaseModel):
     survey_id: Optional[int] = None
@@ -245,7 +250,12 @@ class CryptoQueryUpdate(BaseModel):
     status: Optional[QueryStatus] = None
     executed_at_utc: Optional[datetime.datetime] = None
     result_json: Optional[Dict[str, Any]] = None
-    error_text: Optional[str] = None
+    
+    # NEW: Four additional fields for query recommendations
+    recommendation: Optional[Action] = None
+    confidence: Optional[float] = None
+    rationale: Optional[str] = None
+    source: Optional[str] = None
 
 class CryptoQueryOut(BaseModel):
     query_id: int
@@ -259,7 +269,13 @@ class CryptoQueryOut(BaseModel):
     status: QueryStatus
     executed_at_utc: Optional[datetime.datetime] = None
     result_json: Optional[Dict[str, Any]] = None
-    error_text: Optional[str] = None
+    
+    # NEW: Four additional fields for query recommendations
+    recommendation: Optional[Action] = None
+    confidence: Optional[float] = None
+    rationale: Optional[str] = None
+    source: Optional[str] = None
+    
     model_config = {"from_attributes": True}
 
 

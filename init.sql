@@ -166,7 +166,10 @@ CREATE TABLE IF NOT EXISTS queries (
     status              ENUM('PLANNED','RUNNING','SUCCEEDED','FAILED','CANCELLED') NOT NULL DEFAULT 'PLANNED',
     executed_at_utc     DATETIME NULL,
     result_json         JSON NULL,  -- NOTE:  To be enhanced to include the four fields from results from get_asset_recommendation_OpenAI(..) call
-    error_text          TEXT NULL,
+    recommendation      ENUM('BUY','SELL','HOLD') NULL,
+    confidence          DECIMAL(3,2) NULL CHECK (confidence >= 0.0 AND confidence <= 1.0),
+    rationale           TEXT NULL,
+    source              TEXT NULL,
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_cq_surveys
@@ -409,22 +412,21 @@ DELETE FROM queries WHERE survey_id = @survey_id;
 -- Day 1: Initial Baseline @ T0
 -- --------------------------
 INSERT INTO queries
-(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
+(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json)
 VALUES
 (@survey_id, @schedule_id, @qt_baseline, NULL, @d1_t0_utc, 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL 1 MINUTE),
-JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.72), NULL);
+JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.72));
 
 -- Day 1: Baseline Forecast @ T0 (one per follow-up target)
 INSERT INTO queries
-(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
+(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json)
 SELECT
     @survey_id, @schedule_id, @qt_base_fore,
     qs.paired_followup_delay_hours AS target_delay_hours,
     @d1_t0_utc AS scheduled_for_utc,
     'SUCCEEDED' AS status,
     DATE_ADD(@d1_t0_utc, INTERVAL 2 MINUTE) AS executed_at_utc,
-    JSON_OBJECT('forecast','BF@T0','target_delay_hours', qs.paired_followup_delay_hours),
-    NULL
+    JSON_OBJECT('forecast','BF@T0','target_delay_hours', qs.paired_followup_delay_hours)
 FROM query_schedules qs
 WHERE qs.schedule_id = @schedule_id
     AND qs.query_type_id = @qt_base_fore
@@ -432,41 +434,40 @@ WHERE qs.schedule_id = @schedule_id
 
 -- Day 1: Follow-ups @ +1h, +6h, +11h, +1d, +5d, +10d (all done by snapshot)
 INSERT INTO queries
-(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
+(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json)
 VALUES
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL   1 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL   1 HOUR  + 30 SECOND),
-JSON_OBJECT('h','+1h',  'delta','small up','price',65120), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL   6 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL   6 HOUR  + 50 SECOND),
-JSON_OBJECT('h','+6h',  'delta','flat',    'price',65080), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL  11 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL  11 HOUR  + 45 SECOND),
-JSON_OBJECT('h','+11h', 'delta','down',    'price',64890), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL  24 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL  24 HOUR  + 50 SECOND),
-JSON_OBJECT('h','+1d',  'delta','recover','price',64990), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL 120 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL 120 HOUR + 40 SECOND),
-JSON_OBJECT('h','+5d',  'delta','up',      'price',65550), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL 240 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL 240 HOUR + 40 SECOND),
-JSON_OBJECT('h','+10d', 'delta','steady',  'price',65620), NULL);
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL   1 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d1_t0_utc, INTERVAL 1 HOUR), INTERVAL 30 SECOND),
+JSON_OBJECT('h','+1h',  'delta','small up','price',65120)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL   6 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d1_t0_utc, INTERVAL 6 HOUR), INTERVAL 50 SECOND),
+JSON_OBJECT('h','+6h',  'delta','flat',    'price',65080)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL  11 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d1_t0_utc, INTERVAL 11 HOUR), INTERVAL 45 SECOND),
+JSON_OBJECT('h','+11h', 'delta','down',    'price',64890)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL  24 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d1_t0_utc, INTERVAL 24 HOUR), INTERVAL 50 SECOND),
+JSON_OBJECT('h','+1d',  'delta','recover','price',64990)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL 120 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d1_t0_utc, INTERVAL 120 HOUR), INTERVAL 40 SECOND),
+JSON_OBJECT('h','+5d',  'delta','up',      'price',65550)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL 240 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d1_t0_utc, INTERVAL 240 HOUR), INTERVAL 40 SECOND),
+JSON_OBJECT('h','+10d', 'delta','steady',  'price',65620));
 
 -- --------------------------
 -- Day 2: Initial Baseline @ T0
 -- --------------------------
 INSERT INTO queries
-(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
+(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json)
 VALUES
 (@survey_id, @schedule_id, @qt_baseline, NULL, @d2_t0_utc, 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL 1 MINUTE),
-JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.70), NULL);
+JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.70));
 
 -- Day 2: Baseline Forecast @ T0 (one per follow-up target)
 INSERT INTO queries
-(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
+(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json)
 SELECT
     @survey_id, @schedule_id, @qt_base_fore,
     qs.paired_followup_delay_hours AS target_delay_hours,
     @d2_t0_utc AS scheduled_for_utc,
     'SUCCEEDED' AS status,
     DATE_ADD(@d2_t0_utc, INTERVAL 2 MINUTE) AS executed_at_utc,
-    JSON_OBJECT('forecast','BF@T0','target_delay_hours', qs.paired_followup_delay_hours),
-    NULL
+    JSON_OBJECT('forecast','BF@T0','target_delay_hours', qs.paired_followup_delay_hours)
 FROM query_schedules qs
 WHERE qs.schedule_id = @schedule_id
     AND qs.query_type_id = @qt_base_fore
@@ -474,20 +475,20 @@ WHERE qs.schedule_id = @schedule_id
 
 -- Day 2: Follow-ups @ +1h, +6h, +11h, +1d, +5d, +10d (all done by snapshot)
 INSERT INTO queries
-(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
+(survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json)
 VALUES
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL   1 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL   1 HOUR  + 30 SECOND),
-JSON_OBJECT('h','+1h',  'delta','small up','price',64910), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL   6 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL   6 HOUR  + 50 SECOND),
-JSON_OBJECT('h','+6h',  'delta','flat',    'price',64900), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL  11 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL  11 HOUR  + 45 SECOND),
-JSON_OBJECT('h','+11h', 'delta','down',    'price',64780), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL  24 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL  24 HOUR  + 50 SECOND),
-JSON_OBJECT('h','+1d',  'delta','down',    'price',64620), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL 120 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL 120 HOUR + 40 SECOND),
-JSON_OBJECT('h','+5d',  'delta','up',      'price',65400), NULL),
-(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL 240 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL 240 HOUR + 40 SECOND),
-JSON_OBJECT('h','+10d', 'delta','steady',  'price',65510), NULL);
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL   1 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d2_t0_utc, INTERVAL 1 HOUR), INTERVAL 30 SECOND),
+JSON_OBJECT('h','+1h',  'delta','small up','price',64910)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL   6 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d2_t0_utc, INTERVAL 6 HOUR), INTERVAL 50 SECOND),
+JSON_OBJECT('h','+6h',  'delta','flat',    'price',64900)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL  11 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d2_t0_utc, INTERVAL 11 HOUR), INTERVAL 45 SECOND),
+JSON_OBJECT('h','+11h', 'delta','down',    'price',64780)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL  24 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d2_t0_utc, INTERVAL 24 HOUR), INTERVAL 50 SECOND),
+JSON_OBJECT('h','+1d',  'delta','down',    'price',64620)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL 120 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d2_t0_utc, INTERVAL 120 HOUR), INTERVAL 40 SECOND),
+JSON_OBJECT('h','+5d',  'delta','up',      'price',65400)),
+(@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL 240 HOUR), 'SUCCEEDED', DATE_ADD(DATE_ADD(@d2_t0_utc, INTERVAL 240 HOUR), INTERVAL 40 SECOND),
+JSON_OBJECT('h','+10d', 'delta','steady',  'price',65510));
 
 -- =====================================================================
 -- Sanity checks (optional; comment out for production)

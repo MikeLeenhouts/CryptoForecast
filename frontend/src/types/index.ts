@@ -86,6 +86,11 @@ export interface CryptoQuery {
   executed_at_utc?: string; // ISO datetime string
   result_json?: Record<string, unknown>;
   error_text?: string;
+  // NEW: Four additional fields for query recommendations
+  recommendation?: string;
+  confidence?: number;
+  rationale?: string;
+  source?: string;
 }
 
 export interface CryptoForecast {
@@ -161,6 +166,11 @@ export interface CryptoQueryForm {
   executed_at_utc?: string; // ISO datetime string
   result_json?: Record<string, unknown>;
   error_text?: string;
+  // NEW: Four additional fields for query recommendations
+  recommendation?: string;
+  confidence?: number;
+  rationale?: string;
+  source?: string;
 }
 
 export interface CryptoForecastForm {

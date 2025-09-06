@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import String, Text, Integer, Boolean, ForeignKey, Time, DateTime
+from sqlalchemy import String, Text, Integer, Boolean, ForeignKey, Time, DateTime, Float
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.mysql import JSON
@@ -85,7 +85,15 @@ class CryptoQuery(Base):
     )
     executed_at_utc: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=False), default=None)
     result_json: Mapped[dict | None] = mapped_column(JSON, default=None)
-    error_text: Mapped[str | None] = mapped_column(Text, default=None)
+    
+    # NEW: Four additional fields for query recommendations (matching init.sql schema)
+    recommendation: Mapped[str | None] = mapped_column(
+        SAEnum("BUY", "SELL", "HOLD", name="recommendation_enum"), 
+        default=None
+    )
+    confidence: Mapped[float | None] = mapped_column(Float, default=None)
+    rationale: Mapped[str | None] = mapped_column(Text, default=None)
+    source: Mapped[str | None] = mapped_column(Text, default=None)
 
 
 

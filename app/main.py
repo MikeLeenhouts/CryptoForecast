@@ -100,12 +100,12 @@ surveys = build_crud_router(
 
 
 
-crypto_queries = build_crud_router(
+queries = build_crud_router(
     model=CryptoQuery,
     create_schema=D.CryptoQueryCreate,
     update_schema=D.CryptoQueryUpdate,
     out_schema=D.CryptoQueryOut,
-    table_name="crypto-queries",
+    table_name="queries",
     allowed_filters={
         "survey_id": lambda m, v: m.survey_id == v,
         "schedule_id": lambda m, v: m.schedule_id == v,
@@ -130,7 +130,7 @@ crypto_forecasts = build_crud_router(
 # Register routers
 for r in [
     asset_types, assets, llms, prompts, schedules, query_types, query_schedules,
-    surveys, crypto_queries, crypto_forecasts
+    surveys, queries, crypto_forecasts
 ]:
     app.include_router(r)
 

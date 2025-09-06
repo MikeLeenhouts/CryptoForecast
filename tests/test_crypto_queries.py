@@ -18,22 +18,22 @@ async def test_crypto_queries_with_target_delay_hours_and_filters(client):
     t0_utc = datetime.now(timezone.utc)
 
     # Initial Baseline @ T0
-    r = await client.post("/crypto-queries", json=data.cq_initial(survey_id, schedule_id, t0_utc))
+    r = await client.post("/queries", json=data.cq_initial(survey_id, schedule_id, t0_utc))
     assert r.status_code == 201, r.text
     cq0 = r.json()
 
     # Baseline Forecast @ T0 (6 horizons, distinguished by target_delay_hours)
     for h in (1, 6, 11, 24, 120, 240):
-        r = await client.post("/crypto-queries", json=data.cq_baseline_forecast(survey_id, schedule_id, t0_utc, h))
+        r = await client.post("/queries", json=data.cq_baseline_forecast(survey_id, schedule_id, t0_utc, h))
         assert r.status_code == 201, r.text
 
     # Follow-ups (create 2)
     for h in (1, 6):
-        r = await client.post("/crypto-queries", json=data.cq_followup(survey_id, schedule_id, t0_utc, h))
+        r = await client.post("/queries", json=data.cq_followup(survey_id, schedule_id, t0_utc, h))
         assert r.status_code == 201, r.text
 
     # Filter by survey_id + type
-    r = await client.get("/crypto-queries", params={"survey_id": survey_id, "query_type_id": 2})
+    r = await client.get("/queries", params={"survey_id": survey_id, "query_type_id": 2})
     assert r.status_code == 200
     items = r.json() if isinstance(r.json(), list) else r.json().get("items", [])
     # should be 6 BF rows
@@ -42,6 +42,6 @@ async def test_crypto_queries_with_target_delay_hours_and_filters(client):
 
     # Update a row's status
     cq_id = items[0]["query_id"]
-    r = await client.patch(f"/crypto-queries/{cq_id}", json={"status": "SUCCEEDED"})
+    r = await client.patch(f"/queries/{cq_id}", json={"status": "SUCCEEDED"})
     assert r.status_code == 200
     assert r.json()["status"] == "SUCCEEDED"

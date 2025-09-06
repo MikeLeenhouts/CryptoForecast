@@ -3,6 +3,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from os import getenv
 
+llm_name= ""
 asset_name="Bitcoin"
 prompt = "Provide a recommendation for the asset {asset_name}. Include a buy, sell, or hold recommendation, a confidence level between 0.0 and 1.0, a brief explanation, and any relevant references."
 model = "gpt-4o-2024-08-06"

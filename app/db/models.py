@@ -69,7 +69,7 @@ class Survey(Base):
 
 
 class CryptoQuery(Base):
-    __tablename__ = "crypto_queries"
+    __tablename__ = "queries"
     query_id: Mapped[int] = mapped_column(primary_key=True)
     survey_id: Mapped[int] = mapped_column(ForeignKey("surveys.survey_id", ondelete="RESTRICT"), index=True)
     schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.schedule_id", ondelete="RESTRICT"), index=True)
@@ -93,6 +93,6 @@ class CryptoQuery(Base):
 class CryptoForecast(Base):
     __tablename__ = "crypto_forecasts"
     forecast_id: Mapped[int] = mapped_column(primary_key=True)
-    query_id: Mapped[int] = mapped_column(ForeignKey("crypto_queries.query_id", ondelete="CASCADE"), index=True)
+    query_id: Mapped[int] = mapped_column(ForeignKey("queries.query_id", ondelete="CASCADE"), index=True)
     horizon_type: Mapped[str] = mapped_column(String(50))
     forecast_value: Mapped[dict | None] = mapped_column(JSON)

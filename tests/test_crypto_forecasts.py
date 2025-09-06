@@ -14,7 +14,7 @@ async def test_crypto_forecasts_crud(client):
     survey = (await client.post("/surveys", json=data.survey_payload(asset["asset_id"], schedule["schedule_id"], prompt["prompt_id"], True))).json()
 
     t0_utc = datetime.now(timezone.utc)
-    cq = (await client.post("/crypto-queries", json=data.cq_initial(survey["survey_id"], schedule["schedule_id"], t0_utc))).json()
+    cq = (await client.post("/queries", json=data.cq_initial(survey["survey_id"], schedule["schedule_id"], t0_utc))).json()
 
     # Create forecast for that query
     r = await client.post("/crypto-forecasts", json=data.forecast_payload(cq["query_id"], "OneHour"))

@@ -140,8 +140,8 @@ export const surveysApi = {
   delete: (id: number) => api.delete(`/surveys/${id}`),
 };
 
-// Crypto Queries API
-export const cryptoQueriesApi = {
+// Queries API (renamed from Crypto Queries)
+export const queriesApi = {
   getAll: (filters?: { 
     survey_id?: number; 
     schedule_id?: number; 
@@ -169,12 +169,12 @@ export const cryptoQueriesApi = {
     if (filters?.offset) {
       params.append('offset', filters.offset.toString());
     }
-    return api.get<CryptoQuery[]>(`/crypto-queries?${params.toString()}`);
+    return api.get<CryptoQuery[]>(`/queries?${params.toString()}`);
   },
-  getById: (id: number) => api.get<CryptoQuery>(`/crypto-queries/${id}`),
-  create: (data: CryptoQueryForm) => api.post<CryptoQuery>('/crypto-queries', data),
-  update: (id: number, data: Partial<CryptoQueryForm>) => api.patch<CryptoQuery>(`/crypto-queries/${id}`, data),
-  delete: (id: number) => api.delete(`/crypto-queries/${id}`),
+  getById: (id: number) => api.get<CryptoQuery>(`/queries/${id}`),
+  create: (data: CryptoQueryForm) => api.post<CryptoQuery>('/queries', data),
+  update: (id: number, data: Partial<CryptoQueryForm>) => api.patch<CryptoQuery>(`/queries/${id}`, data),
+  delete: (id: number) => api.delete(`/queries/${id}`),
 };
 
 // Crypto Forecasts API
@@ -207,7 +207,7 @@ export const cryptoForecastsApi = {
 };
 
 // Legacy aliases for backward compatibility
-export const queriesApi = cryptoQueriesApi;
+export const cryptoQueriesApi = queriesApi;
 export const reportsApi = cryptoForecastsApi;
 
 // Runtime write-path APIs (for the provisioning endpoints)

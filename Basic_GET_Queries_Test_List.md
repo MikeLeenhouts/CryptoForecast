@@ -142,40 +142,40 @@ curl -X GET "http://localhost:8080/surveys?is_active=false"
 ### 9. Crypto Queries
 ```bash
 # List all crypto queries
-curl -X GET "http://localhost:8080/crypto-queries"
-# Direct URL: http://localhost:8080/crypto-queries
+curl -X GET "http://localhost:8080/queries"
+# Direct URL: http://localhost:8080/queries
 
 # Get specific crypto query
-curl -X GET "http://localhost:8080/crypto-queries/{id}"
-# Direct URL: http://localhost:8080/crypto-queries/1
+curl -X GET "http://localhost:8080/queries/{id}"
+# Direct URL: http://localhost:8080/queries/1
 
 # Filter by survey ID
-curl -X GET "http://localhost:8080/crypto-queries?survey_id=1"
-# Direct URL: http://localhost:8080/crypto-queries?survey_id=1
+curl -X GET "http://localhost:8080/queries?survey_id=1"
+# Direct URL: http://localhost:8080/queries?survey_id=1
 
 # Filter by schedule ID
-curl -X GET "http://localhost:8080/crypto-queries?schedule_id=1"
-# Direct URL: http://localhost:8080/crypto-queries?schedule_id=1
+curl -X GET "http://localhost:8080/queries?schedule_id=1"
+# Direct URL: http://localhost:8080/queries?schedule_id=1
 
 # Filter by query type ID
-curl -X GET "http://localhost:8080/crypto-queries?query_type_id=1"
-# Direct URL: http://localhost:8080/crypto-queries?query_type_id=1
+curl -X GET "http://localhost:8080/queries?query_type_id=1"
+# Direct URL: http://localhost:8080/queries?query_type_id=1
 
 # Filter by status
-curl -X GET "http://localhost:8080/crypto-queries?status=SUCCEEDED"
-# Direct URL: http://localhost:8080/crypto-queries?status=SUCCEEDED
+curl -X GET "http://localhost:8080/queries?status=SUCCEEDED"
+# Direct URL: http://localhost:8080/queries?status=SUCCEEDED
 
-curl -X GET "http://localhost:8080/crypto-queries?status=PLANNED"
-# Direct URL: http://localhost:8080/crypto-queries?status=PLANNED
+curl -X GET "http://localhost:8080/queries?status=PLANNED"
+# Direct URL: http://localhost:8080/queries?status=PLANNED
 
-curl -X GET "http://localhost:8080/crypto-queries?status=RUNNING"
-# Direct URL: http://localhost:8080/crypto-queries?status=RUNNING
+curl -X GET "http://localhost:8080/queries?status=RUNNING"
+# Direct URL: http://localhost:8080/queries?status=RUNNING
 
-curl -X GET "http://localhost:8080/crypto-queries?status=FAILED"
-# Direct URL: http://localhost:8080/crypto-queries?status=FAILED
+curl -X GET "http://localhost:8080/queries?status=FAILED"
+# Direct URL: http://localhost:8080/queries?status=FAILED
 
-curl -X GET "http://localhost:8080/crypto-queries?status=CANCELLED"
-# Direct URL: http://localhost:8080/crypto-queries?status=CANCELLED
+curl -X GET "http://localhost:8080/queries?status=CANCELLED"
+# Direct URL: http://localhost:8080/queries?status=CANCELLED
 ```
 
 ### 10. Crypto Forecasts
@@ -265,7 +265,7 @@ curl -X GET "http://localhost:8080/schedules"
 curl -X GET "http://localhost:8080/query-types"
 curl -X GET "http://localhost:8080/query-schedules"
 curl -X GET "http://localhost:8080/surveys"
-curl -X GET "http://localhost:8080/crypto-queries"
+curl -X GET "http://localhost:8080/queries"
 curl -X GET "http://localhost:8080/crypto-forecasts"
 
 # 3. Test documentation endpoints

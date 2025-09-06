@@ -151,22 +151,19 @@ CREATE TABLE IF NOT EXISTS surveys (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
--- 9) crypto_queries  (revised)
+-- 9) queries  (revised)
 -- Planner writes one row per planned run (status=PLANNED);
 -- Worker updates status/executed_at_utc and stores results/error.
 -- Baseline Forecast @ T0 uses target_delay_hours to distinguish horizons.
 -- =====================================================================
-CREATE TABLE IF NOT EXISTS crypto_queries (
+CREATE TABLE IF NOT EXISTS queries (
     query_id            INT AUTO_INCREMENT PRIMARY KEY,
     survey_id           INT NOT NULL,
     schedule_id         INT NOT NULL,
     query_type_id       INT NOT NULL,
-    -- NEW: pairing to the follow-up horizon (NULL for Initial/Follow-up)
     target_delay_hours  INT NULL,
-
     scheduled_for_utc   DATETIME NOT NULL,
-    status              ENUM('PLANNED','RUNNING','SUCCEEDED','FAILED','CANCELLED')
-                        NOT NULL DEFAULT 'PLANNED',
+    status              ENUM('PLANNED','RUNNING','SUCCEEDED','FAILED','CANCELLED') NOT NULL DEFAULT 'PLANNED',
     executed_at_utc     DATETIME NULL,
     result_json         JSON NULL,  -- NOTE:  To be enhanced to include the four fields from results from get_asset_recommendation_OpenAI(..) call
     error_text          TEXT NULL,
@@ -204,7 +201,7 @@ CREATE TABLE IF NOT EXISTS crypto_queries (
 -- Seed data  (drop-in replacement)
 -- Assumptions:
 --   - schedules.timezone exists (IANA tz)
---   - crypto_queries has target_delay_hours + updated unique index
+--   - queries has target_delay_hours + updated unique index
 --   - This snapshot represents data that exists by T0+10 days after Day 2
 -- =====================================================================
 
@@ -398,7 +395,7 @@ SET @qt_base_fore = (SELECT query_type_id FROM query_type WHERE query_type_name=
 SET @qt_followup  = (SELECT query_type_id FROM query_type WHERE query_type_name='Follow-up');
 
 -- ============================================================
--- 9) crypto_queries (two active days; snapshot at Day2 T0 + 10 days)
+-- 9) queries (two active days; snapshot at Day2 T0 + 10 days)
 --    America/Chicago 01:00 → UTC 06:00 (CDT assumed)
 -- ============================================================
 SET @d1_t0_utc = '2025-08-20 06:00:00';
@@ -406,19 +403,19 @@ SET @d2_t0_utc = '2025-08-21 06:00:00';
 SET @snapshot_utc = '2025-08-31 06:00:00';  -- Day2 + 10d
 
 -- Clean out any prior rows for this survey to make seed idempotent
-DELETE FROM crypto_queries WHERE survey_id = @survey_id;
+DELETE FROM queries WHERE survey_id = @survey_id;
 
 -- --------------------------
 -- Day 1: Initial Baseline @ T0
 -- --------------------------
-INSERT INTO crypto_queries
+INSERT INTO queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 VALUES
 (@survey_id, @schedule_id, @qt_baseline, NULL, @d1_t0_utc, 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL 1 MINUTE),
 JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.72), NULL);
 
 -- Day 1: Baseline Forecast @ T0 (one per follow-up target)
-INSERT INTO crypto_queries
+INSERT INTO queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 SELECT
     @survey_id, @schedule_id, @qt_base_fore,
@@ -434,7 +431,7 @@ WHERE qs.schedule_id = @schedule_id
     AND qs.delay_hours = 0;
 
 -- Day 1: Follow-ups @ +1h, +6h, +11h, +1d, +5d, +10d (all done by snapshot)
-INSERT INTO crypto_queries
+INSERT INTO queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 VALUES
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d1_t0_utc, INTERVAL   1 HOUR), 'SUCCEEDED', DATE_ADD(@d1_t0_utc, INTERVAL   1 HOUR  + 30 SECOND),
@@ -453,14 +450,14 @@ JSON_OBJECT('h','+10d', 'delta','steady',  'price',65620), NULL);
 -- --------------------------
 -- Day 2: Initial Baseline @ T0
 -- --------------------------
-INSERT INTO crypto_queries
+INSERT INTO queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 VALUES
 (@survey_id, @schedule_id, @qt_baseline, NULL, @d2_t0_utc, 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL 1 MINUTE),
 JSON_OBJECT('summary','Baseline OK','asset','BTC','score',0.70), NULL);
 
 -- Day 2: Baseline Forecast @ T0 (one per follow-up target)
-INSERT INTO crypto_queries
+INSERT INTO queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 SELECT
     @survey_id, @schedule_id, @qt_base_fore,
@@ -476,7 +473,7 @@ WHERE qs.schedule_id = @schedule_id
     AND qs.delay_hours = 0;
 
 -- Day 2: Follow-ups @ +1h, +6h, +11h, +1d, +5d, +10d (all done by snapshot)
-INSERT INTO crypto_queries
+INSERT INTO queries
 (survey_id, schedule_id, query_type_id, target_delay_hours, scheduled_for_utc, status, executed_at_utc, result_json, error_text)
 VALUES
 (@survey_id, @schedule_id, @qt_followup, NULL, DATE_ADD(@d2_t0_utc, INTERVAL   1 HOUR), 'SUCCEEDED', DATE_ADD(@d2_t0_utc, INTERVAL   1 HOUR  + 30 SECOND),
@@ -503,12 +500,12 @@ JSON_OBJECT('h','+10d', 'delta','steady',  'price',65510), NULL);
 
 -- Expected: for each T0, 6 BF rows (target_delay_hours in {1,6,11,24,120,240})
 -- SELECT scheduled_for_utc, COUNT(*) AS bf_cnt
--- FROM crypto_queries
+-- FROM queries
 -- WHERE query_type_id = @qt_base_fore
 -- GROUP BY scheduled_for_utc;
 
 -- Expected: all follow-ups up to +10d are SUCCEEDED by @snapshot_utc
 -- SELECT query_type_id, scheduled_for_utc, status
--- FROM crypto_queries
+-- FROM queries
 -- WHERE scheduled_for_utc <= @snapshot_utc
 -- ORDER BY scheduled_for_utc;

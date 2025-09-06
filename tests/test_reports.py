@@ -15,7 +15,7 @@ async def test_reports_surveys_runs_and_comparison(client):
 
     # Create one query + forecast to give the report something to show
     t0_utc = datetime.now(timezone.utc)
-    cq = (await client.post("/crypto-queries", json=data.cq_initial(survey["survey_id"], schedule["schedule_id"], t0_utc))).json()
+    cq = (await client.post("/queries", json=data.cq_initial(survey["survey_id"], schedule["schedule_id"], t0_utc))).json()
     _ = (await client.post("/crypto-forecasts", json=data.forecast_payload(cq["query_id"], "OneHour"))).json()
 
     # Reports

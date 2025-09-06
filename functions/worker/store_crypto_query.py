@@ -16,7 +16,7 @@ def store_crypto_query(
     custom_prompt: Optional[str] = None
 ) -> int:
     """
-    Calls get_asset_recommendation_OpenAI, parses the results, and stores them in the crypto_queries table.
+    Calls get_asset_recommendation_OpenAI, parses the results, and stores them in the queries table.
 
     Args:
         db_config (dict): Database connection configuration (host, user, password, database).
@@ -62,7 +62,7 @@ def store_crypto_query(
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
         insert_query = """
-            INSERT INTO crypto_queries (
+            INSERT INTO queries (
                 survey_id, schedule_id, query_type_id, target_delay_hours,
                 scheduled_for_utc, status, executed_at_utc
             )
@@ -88,7 +88,7 @@ def store_crypto_query(
 
         # Update record with SUCCEEDED status and results
         update_query = """
-            UPDATE crypto_queries
+            UPDATE queries
             SET status = %s, result_json = %s, error_text = NULL
             WHERE query_id = %s
         """
@@ -101,7 +101,7 @@ def store_crypto_query(
         # Update record with FAILED status and error message
         if connection and cursor and query_id:
             update_query = """
-                UPDATE crypto_queries
+                UPDATE queries
                 SET status = %s, error_text = %s
                 WHERE query_id = %s
             """
@@ -113,7 +113,7 @@ def store_crypto_query(
         # Update record with FAILED status and error message
         if connection and cursor and query_id:
             update_query = """
-                UPDATE crypto_queries
+                UPDATE queries
                 SET status = %s, error_text = %s
                 WHERE query_id = %s
             """

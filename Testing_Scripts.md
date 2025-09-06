@@ -98,17 +98,17 @@ __Test Function__: `test_surveys_crud` __API Endpoints__:
 
 __Execute Test__: `docker-compose exec api python -m pytest tests/test_surveys.py -v`
 
-### 8. Crypto Queries Tests (`test_crypto_queries.py`)
+### 8. Queries Tests (`test_crypto_queries.py`)
 
 __Test Function__: `test_crypto_queries_crud_with_fks` __API Endpoints__:
 
-- `POST /crypto-queries` - Create crypto query (requires survey_id, asset_id)
-- `GET /crypto-queries/{id}` - Get query by ID
-- `GET /crypto-queries?kwargs=` - List all queries
-- `GET /crypto-queries?survey_id={id}` - Filter by survey
-- `GET /crypto-queries?asset_id={id}` - Filter by asset
-- `PATCH /crypto-queries/{id}` - Update query
-- `DELETE /crypto-queries/{id}` - Delete query
+- `POST /queries` - Create crypto query (requires survey_id, asset_id)
+- `GET /queries/{id}` - Get query by ID
+- `GET /queries?kwargs=` - List all queries
+- `GET /queries?survey_id={id}` - Filter by survey
+- `GET /queries?asset_id={id}` - Filter by asset
+- `PATCH /queries/{id}` - Update query
+- `DELETE /queries/{id}` - Delete query
 
 __Execute Test__: `docker-compose exec api python -m pytest tests/test_crypto_queries.py -v`
 

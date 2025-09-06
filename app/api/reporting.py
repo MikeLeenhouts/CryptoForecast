@@ -18,13 +18,13 @@ async def survey_runs(survey_id: int, s: AsyncSession = Depends(db)):
       JSON_EXTRACT(f.forecast_value, '$.action')     AS action,
       JSON_EXTRACT(f.forecast_value, '$.confidence') AS confidence,
       JSON_EXTRACT(f.forecast_value, '$.reason')     AS reason,
-      (SELECT COUNT(*) FROM crypto_queries cq WHERE cq.survey_id = q.survey_id) AS total_queries,
+      (SELECT COUNT(*) FROM queries cq WHERE cq.survey_id = q.survey_id) AS total_queries,
       (SELECT COUNT(*) + 1
          FROM query_schedules qs
          JOIN surveys s2 ON s2.schedule_id = qs.schedule_id
         WHERE s2.survey_id = q.survey_id
           AND qs.delay_hours > 0) AS expected_queries
-    FROM crypto_queries q
+    FROM queries q
     JOIN crypto_forecasts f ON q.query_id = f.query_id
     WHERE q.survey_id = :sid
     ORDER BY query_timestamp, f.horizon_type
@@ -46,7 +46,7 @@ async def survey_comparison(survey_id: int, s: AsyncSession = Depends(db)):
                THEN COALESCE(q.executed_at_utc, q.scheduled_for_utc) END) AS initial_timestamp,
       MAX(CASE WHEN qt.query_type_name='Follow-up'
                THEN COALESCE(q.executed_at_utc, q.scheduled_for_utc) END) AS follow_up_timestamp
-    FROM crypto_queries q
+    FROM queries q
     JOIN crypto_forecasts f ON q.query_id=f.query_id
     JOIN query_type qt ON qt.query_type_id = q.query_type_id
     WHERE q.survey_id=:sid

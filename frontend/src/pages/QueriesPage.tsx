@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import DataTable from '@/components/DataTable';
-import { cryptoQueriesApi, surveysApi, assetsApi, schedulesApi, queryTypesApi, assetTypesApi } from '@/services/api';
+import { queriesApi, surveysApi, assetsApi, schedulesApi, queryTypesApi, assetTypesApi } from '@/services/api';
 import type { CryptoQuery, Survey, Asset, Schedule, QueryType, AssetType, TableColumn } from '@/types';
 
 export default function QueriesPage() {
 
   // Fetch queries
   const { data: queries = [], isLoading } = useQuery({
-    queryKey: ['cryptoQueries'],
+    queryKey: ['queries'],
     queryFn: async () => {
-      const response = await cryptoQueriesApi.getAll();
+      const response = await queriesApi.getAll();
       return response.data;
     },
   });

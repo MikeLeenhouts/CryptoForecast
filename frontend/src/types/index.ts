@@ -79,14 +79,14 @@ export interface CryptoQuery {
   query_id: number;
   survey_id: number;
   schedule_id: number;
+  query_schedule_id: number;
   query_type_id: number;
-  target_delay_hours?: number;
   scheduled_for_utc: string; // ISO datetime string
   status: QueryStatus;
   executed_at_utc?: string; // ISO datetime string
   result_json?: Record<string, unknown>;
   error_text?: string;
-  // NEW: Four additional fields for query recommendations
+  // Four additional fields for query recommendations
   recommendation?: string;
   confidence?: number;
   rationale?: string;
@@ -159,14 +159,14 @@ export interface SurveyForm {
 export interface CryptoQueryForm {
   survey_id: number;
   schedule_id: number;
+  query_schedule_id: number;
   query_type_id: number;
-  target_delay_hours?: number;
   scheduled_for_utc: string; // ISO datetime string
   status?: QueryStatus;
   executed_at_utc?: string; // ISO datetime string
   result_json?: Record<string, unknown>;
   error_text?: string;
-  // NEW: Four additional fields for query recommendations
+  // Four additional fields for query recommendations
   recommendation?: string;
   confidence?: number;
   rationale?: string;

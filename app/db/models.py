@@ -73,10 +73,8 @@ class CryptoQuery(Base):
     query_id: Mapped[int] = mapped_column(primary_key=True)
     survey_id: Mapped[int] = mapped_column(ForeignKey("surveys.survey_id", ondelete="RESTRICT"), index=True)
     schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.schedule_id", ondelete="RESTRICT"), index=True)
+    query_schedule_id: Mapped[int] = mapped_column(ForeignKey("query_schedules.query_schedule_id", ondelete="RESTRICT"), index=True)
     query_type_id: Mapped[int] = mapped_column(ForeignKey("query_type.query_type_id", ondelete="RESTRICT"), index=True)
-
-    # NEW: pairs BF@T0 rows to their follow-up horizon (NULL for Initial/Follow-up)
-    target_delay_hours: Mapped[int | None] = mapped_column(default=None, index=True)
 
     scheduled_for_utc: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=False))
     status: Mapped[str] = mapped_column(
@@ -86,7 +84,7 @@ class CryptoQuery(Base):
     executed_at_utc: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=False), default=None)
     result_json: Mapped[dict | None] = mapped_column(JSON, default=None)
     
-    # NEW: Four additional fields for query recommendations (matching init.sql schema)
+    # Four additional fields for query recommendations (matching init.sql schema)
     recommendation: Mapped[str | None] = mapped_column(
         SAEnum("BUY", "SELL", "HOLD", name="recommendation_enum"), 
         default=None

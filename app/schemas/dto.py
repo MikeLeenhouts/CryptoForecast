@@ -224,16 +224,15 @@ class QueryCreateFollowUp(BaseModel):
 class CryptoQueryCreate(BaseModel):
     survey_id: int
     schedule_id: int
+    query_schedule_id: int
     query_type_id: int
-    # NEW:
-    target_delay_hours: Optional[int] = None
 
     scheduled_for_utc: datetime.datetime
     status: Optional[QueryStatus] = "PLANNED"
     executed_at_utc: Optional[datetime.datetime] = None
     result_json: Optional[Dict[str, Any]] = None
     
-    # NEW: Four additional fields for query recommendations
+    # Four additional fields for query recommendations
     recommendation: Optional[Action] = None
     confidence: Optional[float] = None
     rationale: Optional[str] = None
@@ -242,16 +241,15 @@ class CryptoQueryCreate(BaseModel):
 class CryptoQueryUpdate(BaseModel):
     survey_id: Optional[int] = None
     schedule_id: Optional[int] = None
+    query_schedule_id: Optional[int] = None
     query_type_id: Optional[int] = None
-    # NEW:
-    target_delay_hours: Optional[int] = None
 
     scheduled_for_utc: Optional[datetime.datetime] = None
     status: Optional[QueryStatus] = None
     executed_at_utc: Optional[datetime.datetime] = None
     result_json: Optional[Dict[str, Any]] = None
     
-    # NEW: Four additional fields for query recommendations
+    # Four additional fields for query recommendations
     recommendation: Optional[Action] = None
     confidence: Optional[float] = None
     rationale: Optional[str] = None
@@ -261,16 +259,15 @@ class CryptoQueryOut(BaseModel):
     query_id: int
     survey_id: int
     schedule_id: int
+    query_schedule_id: int
     query_type_id: int
-    # NEW:
-    target_delay_hours: Optional[int] = None
 
     scheduled_for_utc: datetime.datetime
     status: QueryStatus
     executed_at_utc: Optional[datetime.datetime] = None
     result_json: Optional[Dict[str, Any]] = None
     
-    # NEW: Four additional fields for query recommendations
+    # Four additional fields for query recommendations
     recommendation: Optional[Action] = None
     confidence: Optional[float] = None
     rationale: Optional[str] = None
@@ -289,19 +286,15 @@ class CryptoForecastCreate(BaseModel):
     query_id: int
     horizon_type: str
     forecast_value: Optional[Dict[str, Any]] = None
-    # Optional, if you decide to persist the pairing in results:
-    # target_delay_hours: Optional[int] = None
 
 class CryptoForecastUpdate(BaseModel):
     query_id: Optional[int] = None
     horizon_type: Optional[str] = None
     forecast_value: Optional[Dict[str, Any]] = None
-    # target_delay_hours: Optional[int] = None
 
 class CryptoForecastOut(BaseModel):
     forecast_id: int
     query_id: int
     horizon_type: str
     forecast_value: Optional[Dict[str, Any]] = None
-    # target_delay_hours: Optional[int] = None
     model_config = {"from_attributes": True}

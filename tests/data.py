@@ -84,32 +84,32 @@ def survey_payload(asset_id: int, schedule_id: int, prompt_id: int, is_active: b
 def utc_iso(dt: datetime) -> str:
     return dt.astimezone(timezone.utc).replace(microsecond=0).isoformat()
 
-def cq_initial(survey_id: int, schedule_id: int, t0_utc: datetime):
+def cq_initial(survey_id: int, schedule_id: int, query_schedule_id: int, t0_utc: datetime):
     return {
         "survey_id": survey_id,
         "schedule_id": schedule_id,
+        "query_schedule_id": query_schedule_id,
         "query_type_id": 1,          # Initial Baseline
-        "target_delay_hours": None,  # only for BF @ T0
         "scheduled_for_utc": utc_iso(t0_utc),
         "status": "PLANNED",
     }
 
-def cq_baseline_forecast(survey_id: int, schedule_id: int, t0_utc: datetime, target_delay: int):
+def cq_baseline_forecast(survey_id: int, schedule_id: int, query_schedule_id: int, t0_utc: datetime):
     return {
         "survey_id": survey_id,
         "schedule_id": schedule_id,
+        "query_schedule_id": query_schedule_id,
         "query_type_id": 2,           # Baseline Forecast
-        "target_delay_hours": target_delay,
         "scheduled_for_utc": utc_iso(t0_utc),
         "status": "PLANNED",
     }
 
-def cq_followup(survey_id: int, schedule_id: int, t0_utc: datetime, delay: int):
+def cq_followup(survey_id: int, schedule_id: int, query_schedule_id: int, t0_utc: datetime, delay: int):
     return {
         "survey_id": survey_id,
         "schedule_id": schedule_id,
+        "query_schedule_id": query_schedule_id,
         "query_type_id": 3,           # Follow-up
-        "target_delay_hours": None,
         "scheduled_for_utc": utc_iso(t0_utc + timedelta(hours=delay)),
         "status": "PLANNED",
     }

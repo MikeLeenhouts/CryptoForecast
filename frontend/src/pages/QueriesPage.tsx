@@ -99,10 +99,12 @@ export default function QueriesPage() {
     {
       key: 'query_id',
       title: 'ID',
+      sortable: true,
     },
     {
       key: 'survey_id',
       title: 'Asset',
+      sortable: true,
       render: (value) => {
         const { assetName } = getSurveyInfo(value as number);
         return assetName;
@@ -111,6 +113,7 @@ export default function QueriesPage() {
     {
       key: 'asset_type' as keyof CryptoQuery,
       title: 'Asset_Type',
+      sortable: true,
       render: (value, record) => {
         const { assetTypeName } = getSurveyInfo(record.survey_id);
         return assetTypeName;
@@ -119,16 +122,19 @@ export default function QueriesPage() {
     {
       key: 'query_type_id',
       title: 'Query_Type',
+      sortable: true,
       render: (value) => getQueryTypeName(value as number),
     },
     {
       key: 'scheduled_for_utc',
       title: 'Scheduled_For',
+      sortable: true,
       render: (value) => formatTimestamp(value as string),
     },
     {
       key: 'paired_followup_delay_hours',
       title: 'Follow-up Delay',
+      sortable: true,
       render: (value) => {
         if (value === null || value === undefined) return '-';
         const hours = value as number;
@@ -138,11 +144,13 @@ export default function QueriesPage() {
     {
       key: 'executed_at_utc',
       title: 'Executed_At',
+      sortable: true,
       render: (value) => value ? formatTimestamp(value as string) : '-',
     },
     {
       key: 'status',
       title: 'Status',
+      sortable: true,
       render: (value) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(value as string)}`}>
           {value as string}
@@ -152,6 +160,7 @@ export default function QueriesPage() {
     {
       key: 'recommendation',
       title: 'Recommendation',
+      sortable: true,
       render: (value) => {
         if (!value) return '-';
         const str = value as string;
@@ -161,11 +170,13 @@ export default function QueriesPage() {
     {
       key: 'confidence',
       title: 'Confidence',
+      sortable: true,
       render: (value) => value !== null && value !== undefined ? `${(value as number * 100).toFixed(1)}%` : '-',
     },
     {
       key: 'rationale',
       title: 'Rationale',
+      sortable: true,
       render: (value) => {
         if (!value) return '-';
         const str = value as string;
@@ -175,6 +186,7 @@ export default function QueriesPage() {
     {
       key: 'source',
       title: 'Source',
+      sortable: true,
       render: (value) => (value as string) || '-',
     },
   ];

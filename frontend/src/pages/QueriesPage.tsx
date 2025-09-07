@@ -5,11 +5,11 @@ import type { CryptoQuery, Survey, Asset, Schedule, QueryType, AssetType, TableC
 
 export default function QueriesPage() {
 
-  // Fetch queries
+  // Fetch queries with followup delay
   const { data: queries = [], isLoading } = useQuery({
     queryKey: ['queries'],
     queryFn: async () => {
-      const response = await queriesApi.getAll();
+      const response = await queriesApi.getAllWithFollowupDelay();
       return response.data;
     },
   });
@@ -125,6 +125,15 @@ export default function QueriesPage() {
       key: 'scheduled_for_utc',
       title: 'Scheduled_For',
       render: (value) => formatTimestamp(value as string),
+    },
+    {
+      key: 'paired_followup_delay_hours',
+      title: 'Follow-up Delay',
+      render: (value) => {
+        if (value === null || value === undefined) return '-';
+        const hours = value as number;
+        return hours === 1 ? '1 hour' : `${hours} hours`;
+      },
     },
     {
       key: 'executed_at_utc',

@@ -171,6 +171,7 @@ export const queriesApi = {
     }
     return api.get<CryptoQuery[]>(`/queries?${params.toString()}`);
   },
+  getAllWithFollowupDelay: () => api.get<CryptoQuery[]>('/reports/queries-with-followup-delay'),
   getById: (id: number) => api.get<CryptoQuery>(`/queries/${id}`),
   create: (data: CryptoQueryForm) => api.post<CryptoQuery>('/queries', data),
   update: (id: number, data: Partial<CryptoQueryForm>) => api.patch<CryptoQuery>(`/queries/${id}`, data),

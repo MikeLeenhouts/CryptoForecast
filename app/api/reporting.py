@@ -1,9 +1,43 @@
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.utils.deps import db
+from app.deps import db
 
 r = APIRouter(prefix="/reports", tags=["reports"])
+
+@r.get("/test")
+async def test_endpoint():
+    """Simple test endpoint"""
+    return {"message": "Test endpoint works"}
+
+@r.get("/queries-with-followup-delay")
+async def queries_with_followup_delay(s: AsyncSession = Depends(db)):
+    """Get all queries with paired_followup_delay_hours from query_schedules"""
+    try:
+        stmt = sa.text("""
+        SELECT 
+            q.query_id,
+            q.survey_id,
+            q.schedule_id,
+            q.query_schedule_id,
+            q.query_type_id,
+            q.scheduled_for_utc,
+            q.status,
+            q.executed_at_utc,
+            q.result_json,
+            q.recommendation,
+            q.confidence,
+            q.rationale,
+            q.source,
+            qs.paired_followup_delay_hours
+        FROM queries q
+        LEFT JOIN query_schedules qs ON q.query_schedule_id = qs.query_schedule_id
+        ORDER BY q.scheduled_for_utc DESC
+        """)
+        res = await s.execute(stmt)
+        return [dict(r._mapping) for r in res.fetchall()]
+    except Exception as e:
+        return {"error": str(e)}
 
 @r.get("/surveys/{survey_id}/runs")
 async def survey_runs(survey_id: int, s: AsyncSession = Depends(db)):

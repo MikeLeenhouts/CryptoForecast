@@ -92,6 +92,7 @@ class CryptoQuery(Base):
     confidence: Mapped[float | None] = mapped_column(Float, default=None)
     rationale: Mapped[str | None] = mapped_column(Text, default=None)
     source: Mapped[str | None] = mapped_column(Text, default=None)
+    created_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=False), default=None)
 
 
 

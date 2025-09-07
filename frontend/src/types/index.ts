@@ -91,6 +91,8 @@ export interface CryptoQuery {
   confidence?: number;
   rationale?: string;
   source?: string;
+  // Follow-up delay from query_schedules table
+  paired_followup_delay_hours?: number;
 }
 
 export interface CryptoForecast {

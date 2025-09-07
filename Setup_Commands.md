@@ -23,7 +23,7 @@ git push -u origin master
     docker-compose build --no-cache
     docker-compose up -d --build
     docker-compose up
-    docker-compose down
+    docker-compose down -v
     docker-compose up -d --build
 
 # Run with Docker - Build the Docker Image:

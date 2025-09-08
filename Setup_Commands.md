@@ -4,7 +4,8 @@
 - __Frontend Dashboard__:   `http://localhost:5173/dashboard`
 ## Project Links and Commands
 
-In preparation for this task, review docker-compose.yml and Dockerfile for a description of the API running in a container at http://localhost:8080/ and the frontend it running in a container at http://localhost:5173/ 
+In preparation for this task, review docker-compose.yml and Dockerfile for a description of 
+the API running in a container at http://localhost:8080/ and the frontend it running in a container at http://localhost:5173/ 
 the containers are up and running
 
 uvicorn app.main:app --host 0.0.0.0 --port 8080

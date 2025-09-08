@@ -142,14 +142,14 @@ export default function SchedulesPage() {
 
       <div className="w-[80%]">
         <DataTable
-          title="Survey Schedules"
+          title=""
           data={schedules}
           columns={columns}
           loading={isLoading}
           onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          searchPlaceholder="Search schedules..."
+          searchable={false}
         />
       </div>
 

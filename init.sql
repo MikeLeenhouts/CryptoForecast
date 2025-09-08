@@ -349,6 +349,8 @@ DELETE qs FROM query_schedules qs
 JOIN schedules s ON s.schedule_id = qs.schedule_id
 WHERE s.schedule_name = '10-Day_6-Follow-ups';
 
+
+-- Schedule ID=1, 10-Day_6-Follow-ups query_schedules
 --    Initial Baseline @ T0
 INSERT IGNORE INTO query_schedules (schedule_id, query_type_id, delay_hours, paired_followup_delay_hours)
 SELECT s.schedule_id, qt.query_type_id, 0, NULL
@@ -373,6 +375,36 @@ JOIN (SELECT 1 h UNION ALL SELECT 6 UNION ALL SELECT 11
     UNION ALL SELECT 24 UNION ALL SELECT 120 UNION ALL SELECT 240) d
 JOIN query_type qt ON qt.query_type_name = 'Follow-up'
 WHERE s.schedule_name = '10-Day_6-Follow-ups';
+
+
+
+-- Schedule ID=2, 14-Day_7-Follow-ups query_schedules
+--    Initial Baseline @ T0
+INSERT IGNORE INTO query_schedules (schedule_id, query_type_id, delay_hours, paired_followup_delay_hours)
+SELECT s.schedule_id, qt.query_type_id, 0, NULL
+FROM schedules s
+JOIN query_type qt ON qt.query_type_name = 'Initial Baseline'
+WHERE s.schedule_name = '14-Day_7-Follow-ups';
+
+--    Baseline Forecast @ T0, one per follow-up target
+INSERT IGNORE INTO query_schedules (schedule_id, query_type_id, delay_hours, paired_followup_delay_hours)
+SELECT s.schedule_id, qt.query_type_id, 0, d.h
+FROM schedules s
+JOIN (SELECT 1 h UNION ALL SELECT 6 UNION ALL SELECT 11
+    UNION ALL SELECT 24 UNION ALL SELECT 120 UNION ALL SELECT 240 UNION ALL SELECT 336) d
+JOIN query_type qt ON qt.query_type_name = 'Baseline Forecast'
+WHERE s.schedule_name = '14-Day_7-Follow-ups';
+
+--    Follow-ups at their delays
+INSERT IGNORE INTO query_schedules (schedule_id, query_type_id, delay_hours, paired_followup_delay_hours)
+SELECT s.schedule_id, qt.query_type_id, d.h, NULL
+FROM schedules s
+JOIN (SELECT 1 h UNION ALL SELECT 6 UNION ALL SELECT 11
+    UNION ALL SELECT 24 UNION ALL SELECT 120 UNION ALL SELECT 240 UNION ALL SELECT 336) d
+JOIN query_type qt ON qt.query_type_name = 'Follow-up'
+WHERE s.schedule_name = '14-Day_7-Follow-ups';
+
+
 
 -- 8) surveys (activate for two days, then could be deactivated later; seed leaves TRUE)
 INSERT INTO surveys (asset_id, schedule_id, prompt_id, is_active)

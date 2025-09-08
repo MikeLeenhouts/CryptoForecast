@@ -141,14 +141,14 @@ export default function PromptsPage() {
 
       <div className="w-[70%]">
         <DataTable
-          title="Prompts"
+          title=""
           data={prompts}
           columns={columns}
           loading={isLoading}
           onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          searchPlaceholder="Search prompts..."
+          searchable={false}
         />
       </div>
 

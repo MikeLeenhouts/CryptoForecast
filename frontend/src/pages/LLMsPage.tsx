@@ -129,14 +129,14 @@ export default function LLMsPage() {
 
       <div className="w-[70%]">
         <DataTable
-          title="LLM Configurations"
+          title=""
           data={llms}
           columns={columns}
           loading={isLoading}
           onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          searchPlaceholder="Search LLM configurations..."
+          searchable={false}
         />
       </div>
 

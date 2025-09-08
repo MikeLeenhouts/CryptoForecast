@@ -37,13 +37,35 @@ export default function DataTable<T extends Record<string, any>>({
     direction: null,
   });
 
+  // Helper function to get searchable text for a record
+  const getSearchableText = (record: T) => {
+    // Search through all columns instead of filtering by specific titles
+    return columns.map(column => {
+      if (column.render) {
+        // Get the rendered value as a string
+        const renderedValue = column.render(record[column.key], record);
+        
+        // Special handling for Status column which returns JSX with the actual status text
+        if (column.title.toLowerCase() === 'status') {
+          // For status column, use the raw value instead of rendered JSX
+          return String(record[column.key] || '');
+        }
+        
+        // For other columns, convert rendered value to string and remove HTML tags
+        return String(renderedValue).replace(/<[^>]*>/g, '');
+      } else {
+        return String(record[column.key] || '');
+      }
+    }).join(' ').toLowerCase();
+  };
+
   // Filter data based on search term
   const filteredData = searchable
-    ? data.filter((item) =>
-        Object.values(item).some((value) =>
-          String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
+    ? data.filter((item) => {
+        if (!searchTerm.trim()) return true;
+        const searchableText = getSearchableText(item);
+        return searchableText.includes(searchTerm.toLowerCase());
+      })
     : data;
 
   // Sort data based on sort configuration

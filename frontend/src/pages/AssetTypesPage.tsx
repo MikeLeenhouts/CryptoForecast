@@ -115,14 +115,14 @@ export default function AssetTypesPage() {
 
       <div className="w-[70%]">
         <DataTable
-          title="Asset Types"
+          title=""
           data={assetTypes}
           columns={columns}
           loading={isLoading}
           onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          searchPlaceholder="Search asset types..."
+          searchable={false}
         />
       </div>
 

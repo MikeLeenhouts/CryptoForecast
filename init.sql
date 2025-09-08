@@ -45,10 +45,6 @@ CREATE TABLE IF NOT EXISTS llms (
 
 -- =====================================================================
 -- 4) prompts
--- Notes:
---   T0: Baseline Query (LLM-specific prompt + Asset)
---   T0: Baseline Forecast Query (Baseline + Forecast template + Forecast Time)
---   T(x): Follow-up Query at time x after T0
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS prompts (
     prompt_id       INT AUTO_INCREMENT PRIMARY KEY,
@@ -66,7 +62,6 @@ CREATE TABLE IF NOT EXISTS prompts (
 
 -- =====================================================================
 -- 5) query_type
--- (Examples: 'Initial Baseline', 'Baseline Forecast', 'Follow-up')
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS query_type (
     query_type_id   INT AUTO_INCREMENT PRIMARY KEY,
@@ -125,8 +120,7 @@ CREATE TABLE IF NOT EXISTS query_schedules (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
--- 8) surveys   (simplified: no llm_id; rely on prompts.llm_id)
--- Unique identity: (asset_id, schedule_id, prompt_id)
+-- 8) surveys
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS surveys (
     survey_id     INT AUTO_INCREMENT PRIMARY KEY,
@@ -151,10 +145,7 @@ CREATE TABLE IF NOT EXISTS surveys (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
--- 9) queries  (revised)
--- Planner writes one row per planned run (status=PLANNED);
--- Worker updates status/executed_at_utc and stores results/error.
--- Baseline Forecast @ T0 uses target_delay_hours to distinguish horizons.
+-- 9) queries
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS queries (
     query_id            INT AUTO_INCREMENT PRIMARY KEY,
@@ -405,7 +396,6 @@ JOIN query_type qt ON qt.query_type_name = 'Follow-up'
 WHERE s.schedule_name = '14-Day_7-Follow-ups';
 
 
-
 -- 8) surveys (activate for two days, then could be deactivated later; seed leaves TRUE)
 INSERT INTO surveys (asset_id, schedule_id, prompt_id, is_active)
 SELECT a.asset_id, s.schedule_id, p.prompt_id, TRUE
@@ -414,6 +404,23 @@ JOIN schedules s ON s.schedule_name = '10-Day_6-Follow-ups'
 JOIN prompts p   ON p.prompt_version = 1
 WHERE a.asset_name = 'Bitcoin'
 ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
+
+INSERT INTO surveys (asset_id, schedule_id, prompt_id, is_active)
+SELECT a.asset_id, s.schedule_id, p.prompt_id, TRUE
+FROM assets a
+JOIN schedules s ON s.schedule_name = '10-Day_6-Follow-ups'
+JOIN prompts p   ON p.prompt_version = 1
+WHERE a.asset_name = 'Ethereum'
+ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
+
+INSERT INTO surveys (asset_id, schedule_id, prompt_id, is_active)
+SELECT a.asset_id, s.schedule_id, p.prompt_id, TRUE
+FROM assets a
+JOIN schedules s ON s.schedule_name = '14-Day_7-Follow-ups'
+JOIN prompts p   ON p.prompt_version = 1
+WHERE a.asset_name = 'Gold'
+ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
+
 
 -- Convenience IDs
 SET @asset_id = (SELECT asset_id FROM assets WHERE asset_name='Bitcoin' LIMIT 1);
@@ -637,22 +644,176 @@ ORDER BY qs.delay_hours;
 
 
 -- =====================================================================
--- Sanity checks (optional; comment out for production)
+-- Mock Data
 -- =====================================================================
--- Expected: 13 schedule steps per schedule (1 initial + 6 BF@T0 + 6 follow-ups)
--- SELECT qt.query_type_name, qs.delay_hours, qs.paired_followup_delay_hours
--- FROM query_schedules qs JOIN query_type qt ON qt.query_type_id = qs.query_type_id
--- WHERE qs.schedule_id = @schedule_id
--- ORDER BY qs.delay_hours, qt.query_type_name, qs.paired_followup_delay_hours;
 
--- Expected: for each T0, 6 BF rows (target_delay_hours in {1,6,11,24,120,240})
--- SELECT scheduled_for_utc, COUNT(*) AS bf_cnt
--- FROM queries
--- WHERE query_type_id = @qt_base_fore
--- GROUP BY scheduled_for_utc;
+-- ```sql
+-- =====================================================================
+-- Mock Data for queries Table (All 12 Surveys, 2 Days)
+-- Appended to init.sql
+-- Generates mock queries for all surveys, covering Initial Baseline and Follow-up queries
+-- Assumes surveys are active for 2 days (2025-09-01 and 2025-09-02)
+-- Randomizes recommendation, confidence, rationale, source
+-- Avoids modifying existing data (e.g., Bitcoin survey on 2025-08-20/21)
+-- =====================================================================
 
--- Expected: all follow-ups up to +10d are SUCCEEDED by @snapshot_utc
--- SELECT query_type_id, scheduled_for_utc, status
--- FROM queries
--- WHERE scheduled_for_utc <= @snapshot_utc
--- ORDER BY scheduled_for_utc;
+SET NAMES utf8mb4;
+SET time_zone = '+00:00';
+
+-- Helper: Query type IDs
+SET @qt_baseline = (SELECT query_type_id FROM query_type WHERE query_type_name = 'Initial Baseline');
+SET @qt_base_fore = (SELECT query_type_id FROM query_type WHERE query_type_name = 'Baseline Forecast');
+SET @qt_followup = (SELECT query_type_id FROM query_type WHERE query_type_name = 'Follow-up');
+
+-- Stored procedure to generate mock queries
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS generate_all_surveys_mock_queries $$
+CREATE PROCEDURE generate_all_surveys_mock_queries()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_survey_id INT;
+    DECLARE v_schedule_id INT;
+    DECLARE v_followup_count INT;
+    DECLARE v_day_offset INT;
+    DECLARE v_base_time DATETIME;
+
+    -- Cursor for all surveys
+    DECLARE survey_cursor CURSOR FOR
+        SELECT survey_id, schedule_id
+        FROM surveys
+        WHERE is_active = TRUE;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN survey_cursor;
+
+    read_loop: LOOP
+        FETCH survey_cursor INTO v_survey_id, v_schedule_id;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Determine number of follow-ups based on schedule
+        SET v_followup_count = (
+            SELECT COUNT(*) 
+            FROM query_schedules qs 
+            JOIN query_type qt ON qs.query_type_id = qt.query_type_id
+            WHERE qs.schedule_id = v_schedule_id 
+            AND qt.query_type_name = 'Follow-up'
+        );
+
+        -- Loop over two days (2025-09-01 and 2025-09-02)
+        SET v_day_offset = 0;
+        WHILE v_day_offset <= 1 DO
+            SET v_base_time = DATE_ADD('2025-09-01 06:00:00', INTERVAL v_day_offset DAY);
+
+            -- Insert Initial Baseline Query @ T0
+            INSERT IGNORE INTO queries (
+                survey_id, schedule_id, query_schedule_id, query_type_id, 
+                scheduled_for_utc, status, executed_at_utc, 
+                result_json, recommendation, confidence, rationale, source
+            )
+            SELECT 
+                v_survey_id, 
+                v_schedule_id, 
+                qs.query_schedule_id, 
+                @qt_baseline, 
+                v_base_time, 
+                'SUCCEEDED', 
+                DATE_ADD(v_base_time, INTERVAL 1 MINUTE),
+                JSON_OBJECT(
+                    'recommendation', ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
+                    'confidence', ROUND(0.60 + RAND() * 0.35, 2),
+                    'rationale', ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
+                    'source', ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                ),
+                ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
+                ROUND(0.60 + RAND() * 0.35, 2),
+                ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
+                ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+            FROM query_schedules qs
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_baseline
+            AND qs.delay_hours = 0
+            AND qs.paired_followup_delay_hours IS NULL;
+
+            -- Insert Baseline Forecast Queries @ T0 (one per follow-up)
+            INSERT IGNORE INTO queries (
+                survey_id, schedule_id, query_schedule_id, query_type_id, 
+                scheduled_for_utc, status, executed_at_utc, 
+                result_json, recommendation, confidence, rationale, source
+            )
+            SELECT 
+                v_survey_id, 
+                v_schedule_id, 
+                qs.query_schedule_id, 
+                @qt_base_fore, 
+                v_base_time, 
+                'SUCCEEDED', 
+                DATE_ADD(v_base_time, INTERVAL 1 MINUTE),
+                JSON_ARRAY(
+                    JSON_OBJECT(
+                        'delay_hour', qs.paired_followup_delay_hours,
+                        'recommendation', ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
+                        'confidence', ROUND(0.60 + RAND() * 0.35, 2),
+                        'rationale', ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
+                        'source', ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                    )
+                ),
+                ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
+                ROUND(0.60 + RAND() * 0.35, 2),
+                ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
+                ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+            FROM query_schedules qs
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_base_fore
+            AND qs.delay_hours = 0
+            AND qs.paired_followup_delay_hours IS NOT NULL
+            ORDER BY qs.paired_followup_delay_hours;
+
+            -- Insert Follow-up Queries
+            INSERT IGNORE INTO queries (
+                survey_id, schedule_id, query_schedule_id, query_type_id, 
+                scheduled_for_utc, status, executed_at_utc, 
+                result_json, recommendation, confidence, rationale, source
+            )
+            SELECT 
+                v_survey_id, 
+                v_schedule_id, 
+                qs.query_schedule_id, 
+                @qt_followup, 
+                DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), 
+                'SUCCEEDED', 
+                DATE_ADD(DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), INTERVAL 1 MINUTE),
+                JSON_OBJECT(
+                    'recommendation', ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
+                    'confidence', ROUND(0.60 + RAND() * 0.35, 2),
+                    'rationale', ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
+                    'source', ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                ),
+                ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
+                ROUND(0.60 + RAND() * 0.35, 2),
+                ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
+                ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+            FROM query_schedules qs
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_followup
+            AND qs.paired_followup_delay_hours IS NULL
+            ORDER BY qs.delay_hours;
+
+            SET v_day_offset = v_day_offset + 1;
+        END WHILE;
+    END LOOP;
+
+    CLOSE survey_cursor;
+END $$
+
+DELIMITER ;
+
+-- Execute the procedure
+CALL generate_all_surveys_mock_queries();
+
+-- Clean up
+DROP PROCEDURE IF EXISTS generate_all_surveys_mock_queries;
+-- ```

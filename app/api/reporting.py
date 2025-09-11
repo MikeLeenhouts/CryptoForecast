@@ -21,6 +21,7 @@ async def queries_with_followup_delay(s: AsyncSession = Depends(db)):
             q.schedule_id,
             q.query_schedule_id,
             q.query_type_id,
+            q.paired_query_id,
             q.scheduled_for_utc,
             q.status,
             q.executed_at_utc,

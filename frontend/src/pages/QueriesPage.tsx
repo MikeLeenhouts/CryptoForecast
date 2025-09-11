@@ -133,9 +133,9 @@ export default function QueriesPage() {
     },
     {
       key: 'paired_query_id',
-      title: 'Paired Query',
+      title: 'Paired_Query_ID',
       sortable: true,
-      render: (value) => value ? `Query ${value}` : '-',
+      render: (value) => value ? String(value) : '-',
     },
     {
       key: 'paired_followup_delay_hours',

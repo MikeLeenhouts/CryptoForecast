@@ -644,18 +644,17 @@ WHERE qs.schedule_id = @schedule_id
 ORDER BY qs.delay_hours;
 
 
--- =====================================================================
--- Mock Data
--- =====================================================================
 
--- ```sql
+
 -- =====================================================================
--- Mock Data for queries Table (All 12 Surveys, 2 Days)
--- Appended to init.sql
--- Generates mock queries for all surveys, covering Initial Baseline and Follow-up queries
--- Assumes surveys are active for 2 days (2025-09-01 and 2025-09-02)
--- Randomizes recommendation, confidence, rationale, source
+-- Mock Data for queries Table (All 12 Surveys, 30 Days)
+-- Drop-in replacement for generate_all_surveys_mock_queries.sql
+-- Generates mock queries for all surveys, covering Initial Baseline, Baseline Forecast, and Follow-up queries
+-- Covers 30 days (2025-11-01 to 2025-11-30)
+-- Custom recommendation rules per survey ID, random confidence, generated rationale and source
 -- Avoids modifying existing data (e.g., Bitcoin survey on 2025-08-20/21)
+-- Fixes Error 1137 by using LEFT JOIN instead of multiple subqueries
+-- Updated to include paired_query_id for Baseline Forecast and Follow-up queries
 -- =====================================================================
 
 SET NAMES utf8mb4;
@@ -665,6 +664,27 @@ SET time_zone = '+00:00';
 SET @qt_baseline = (SELECT query_type_id FROM query_type WHERE query_type_name = 'Initial Baseline');
 SET @qt_base_fore = (SELECT query_type_id FROM query_type WHERE query_type_name = 'Baseline Forecast');
 SET @qt_followup = (SELECT query_type_id FROM query_type WHERE query_type_name = 'Follow-up');
+
+-- Temporary table to store Initial Baseline predictions for accuracy-based follow-ups
+DROP TEMPORARY TABLE IF EXISTS temp_initial_predictions;
+CREATE TEMPORARY TABLE temp_initial_predictions (
+    survey_id INT,
+    day_offset INT,
+    delay_hours INT,
+    recommendation VARCHAR(50),
+    PRIMARY KEY (survey_id, day_offset, delay_hours)
+);
+
+-- Temporary table to store Baseline Forecast query IDs for paired_query_id linking
+DROP TEMPORARY TABLE IF EXISTS temp_base_forecast_queries;
+CREATE TEMPORARY TABLE temp_base_forecast_queries (
+    survey_id INT,
+    day_offset INT,
+    paired_followup_delay_hours INT,
+    query_id INT,
+    scheduled_for_utc DATETIME,
+    PRIMARY KEY (survey_id, day_offset, paired_followup_delay_hours)
+);
 
 -- Stored procedure to generate mock queries
 DELIMITER $$
@@ -683,7 +703,8 @@ BEGIN
     DECLARE survey_cursor CURSOR FOR
         SELECT survey_id, schedule_id
         FROM surveys
-        WHERE is_active = TRUE;
+        WHERE is_active = TRUE
+        AND survey_id IN (1, 2, 3, 4, 8, 9, 10, 11, 15, 16, 17, 18);
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
@@ -704,15 +725,28 @@ BEGIN
             AND qt.query_type_name = 'Follow-up'
         );
 
-        -- Loop over two days (2025-09-01 and 2025-09-02)
+        -- Loop over 30 days (2025-11-01 to 2025-11-30)
         SET v_day_offset = 0;
-        WHILE v_day_offset <= 1 DO
-            SET v_base_time = DATE_ADD('2025-09-01 06:00:00', INTERVAL v_day_offset DAY);
+        WHILE v_day_offset <= 29 DO
+            SET v_base_time = DATE_ADD('2025-11-01 06:00:00', INTERVAL v_day_offset DAY);
+
+            -- Store Initial Baseline predictions for accuracy-based follow-ups
+            INSERT INTO temp_initial_predictions (survey_id, day_offset, delay_hours, recommendation)
+            SELECT 
+                v_survey_id, 
+                v_day_offset, 
+                qs.paired_followup_delay_hours,
+                ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+            FROM query_schedules qs
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_base_fore
+            AND qs.delay_hours = 0
+            AND qs.paired_followup_delay_hours IS NOT NULL;
 
             -- Insert Initial Baseline Query @ T0
             INSERT IGNORE INTO queries (
                 survey_id, schedule_id, query_schedule_id, query_type_id, 
-                scheduled_for_utc, status, executed_at_utc, 
+                paired_query_id, scheduled_for_utc, status, executed_at_utc, 
                 result_json, recommendation, confidence, rationale, source
             )
             SELECT 
@@ -720,19 +754,28 @@ BEGIN
                 v_schedule_id, 
                 qs.query_schedule_id, 
                 @qt_baseline, 
+                NULL,  -- No paired query for Initial Baseline
                 v_base_time, 
                 'SUCCEEDED', 
                 DATE_ADD(v_base_time, INTERVAL 1 MINUTE),
                 JSON_OBJECT(
                     'recommendation', ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
                     'confidence', ROUND(0.60 + RAND() * 0.35, 2),
-                    'rationale', ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
-                    'source', ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                    'rationale', CASE 
+                        WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'BUY' THEN 'Bullish trend detected'
+                        WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'SELL' THEN 'Bearish market signals'
+                        ELSE 'Stable market conditions'
+                    END,
+                    'source', ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
                 ),
                 ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
                 ROUND(0.60 + RAND() * 0.35, 2),
-                ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
-                ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                CASE 
+                    WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'BUY' THEN 'Bullish trend detected'
+                    WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'SELL' THEN 'Bearish market signals'
+                    ELSE 'Stable market conditions'
+                END,
+                ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
             FROM query_schedules qs
             WHERE qs.schedule_id = v_schedule_id
             AND qs.query_type_id = @qt_baseline
@@ -742,7 +785,7 @@ BEGIN
             -- Insert Baseline Forecast Queries @ T0 (one per follow-up)
             INSERT IGNORE INTO queries (
                 survey_id, schedule_id, query_schedule_id, query_type_id, 
-                scheduled_for_utc, status, executed_at_utc, 
+                paired_query_id, scheduled_for_utc, status, executed_at_utc, 
                 result_json, recommendation, confidence, rationale, source
             )
             SELECT 
@@ -750,6 +793,7 @@ BEGIN
                 v_schedule_id, 
                 qs.query_schedule_id, 
                 @qt_base_fore, 
+                NULL,  -- paired_query_id set later via UPDATE
                 v_base_time, 
                 'SUCCEEDED', 
                 DATE_ADD(v_base_time, INTERVAL 1 MINUTE),
@@ -758,14 +802,22 @@ BEGIN
                         'delay_hour', qs.paired_followup_delay_hours,
                         'recommendation', ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
                         'confidence', ROUND(0.60 + RAND() * 0.35, 2),
-                        'rationale', ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
-                        'source', ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                        'rationale', CASE 
+                            WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'BUY' THEN 'Predicted bullish trend'
+                            WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'SELL' THEN 'Predicted bearish signals'
+                            ELSE 'Predicted stable conditions'
+                        END,
+                        'source', ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
                     )
                 ),
                 ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
                 ROUND(0.60 + RAND() * 0.35, 2),
-                ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
-                ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                CASE 
+                    WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'BUY' THEN 'Predicted bullish trend'
+                    WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'SELL' THEN 'Predicted bearish signals'
+                    ELSE 'Predicted stable conditions'
+                END,
+                ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
             FROM query_schedules qs
             WHERE qs.schedule_id = v_schedule_id
             AND qs.query_type_id = @qt_base_fore
@@ -773,10 +825,25 @@ BEGIN
             AND qs.paired_followup_delay_hours IS NOT NULL
             ORDER BY qs.paired_followup_delay_hours;
 
-            -- Insert Follow-up Queries
+            -- Store Baseline Forecast query IDs for linking
+            INSERT INTO temp_base_forecast_queries (survey_id, day_offset, paired_followup_delay_hours, query_id, scheduled_for_utc)
+            SELECT 
+                v_survey_id, 
+                v_day_offset, 
+                qs.paired_followup_delay_hours, 
+                LAST_INSERT_ID() + ROW_NUMBER() OVER (PARTITION BY v_survey_id, v_day_offset ORDER BY qs.paired_followup_delay_hours) - 1,
+                v_base_time
+            FROM query_schedules qs
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_base_fore
+            AND qs.delay_hours = 0
+            AND qs.paired_followup_delay_hours IS NOT NULL
+            ORDER BY qs.paired_followup_delay_hours;
+
+            -- Insert Follow-up Queries for Surveys 1, 2, 4, 18 (Random)
             INSERT IGNORE INTO queries (
                 survey_id, schedule_id, query_schedule_id, query_type_id, 
-                scheduled_for_utc, status, executed_at_utc, 
+                paired_query_id, scheduled_for_utc, status, executed_at_utc, 
                 result_json, recommendation, confidence, rationale, source
             )
             SELECT 
@@ -784,23 +851,415 @@ BEGIN
                 v_schedule_id, 
                 qs.query_schedule_id, 
                 @qt_followup, 
+                (SELECT query_id FROM temp_base_forecast_queries tbf 
+                 WHERE tbf.survey_id = v_survey_id 
+                 AND tbf.day_offset = v_day_offset 
+                 AND tbf.paired_followup_delay_hours = qs.delay_hours),  -- Link to Baseline Forecast
                 DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), 
                 'SUCCEEDED', 
                 DATE_ADD(DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), INTERVAL 1 MINUTE),
                 JSON_OBJECT(
                     'recommendation', ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
                     'confidence', ROUND(0.60 + RAND() * 0.35, 2),
-                    'rationale', ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
-                    'source', ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                    'rationale', CASE 
+                        WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'BUY' THEN 'Bullish trend detected'
+                        WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'SELL' THEN 'Bearish market signals'
+                        ELSE 'Stable market conditions'
+                    END,
+                    'source', ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
                 ),
                 ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD'),
                 ROUND(0.60 + RAND() * 0.35, 2),
-                ELT(FLOOR(1 + RAND() * 3), 'Price is rising', 'Price is falling', 'Price is stable'),
-                ELT(FLOOR(1 + RAND() * 3), 'model', 'analyst', 'external_feed')
+                CASE 
+                    WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'BUY' THEN 'Bullish trend detected'
+                    WHEN ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD') = 'SELL' THEN 'Bearish market signals'
+                    ELSE 'Stable market conditions'
+                END,
+                ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
             FROM query_schedules qs
             WHERE qs.schedule_id = v_schedule_id
             AND qs.query_type_id = @qt_followup
             AND qs.paired_followup_delay_hours IS NULL
+            AND v_survey_id IN (1, 2, 4, 18)
+            ORDER BY qs.delay_hours;
+
+            -- Insert Follow-up Queries for Survey 3 (Day 1: Random, Day 2+: 75% accurate)
+            INSERT IGNORE INTO queries (
+                survey_id, schedule_id, query_schedule_id, query_type_id, 
+                paired_query_id, scheduled_for_utc, status, executed_at_utc, 
+                result_json, recommendation, confidence, rationale, source
+            )
+            SELECT 
+                v_survey_id, 
+                v_schedule_id, 
+                qs.query_schedule_id, 
+                @qt_followup, 
+                (SELECT query_id FROM temp_base_forecast_queries tbf 
+                 WHERE tbf.survey_id = v_survey_id 
+                 AND tbf.day_offset = v_day_offset 
+                 AND tbf.paired_followup_delay_hours = qs.delay_hours),  -- Link to Baseline Forecast
+                DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), 
+                'SUCCEEDED', 
+                DATE_ADD(DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), INTERVAL 1 MINUTE),
+                JSON_OBJECT(
+                    'recommendation', COALESCE(
+                        CASE WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ),
+                    'confidence', ROUND(0.60 + RAND() * 0.35, 2),
+                    'rationale', CASE 
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'BUY' THEN 'Bullish trend detected'
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'SELL' THEN 'Bearish market signals'
+                        ELSE 'Stable market conditions'
+                    END,
+                    'source', ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+                ),
+                COALESCE(
+                    CASE WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation END,
+                    ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                ),
+                ROUND(0.60 + RAND() * 0.35, 2),
+                CASE 
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'BUY' THEN 'Bullish trend detected'
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'SELL' THEN 'Bearish market signals'
+                    ELSE 'Stable market conditions'
+                END,
+                ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+            FROM query_schedules qs
+            LEFT JOIN temp_initial_predictions tip 
+                ON tip.survey_id = v_survey_id 
+                AND tip.day_offset = v_day_offset 
+                AND tip.delay_hours = qs.delay_hours
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_followup
+            AND qs.paired_followup_delay_hours IS NULL
+            AND v_survey_id = 3
+            ORDER BY qs.delay_hours;
+
+            -- Insert Follow-up Queries for Surveys 8, 9, 10 (Day 1: Weighted BUY, Day 2+: 75% accurate)
+            INSERT IGNORE INTO queries (
+                survey_id, schedule_id, query_schedule_id, query_type_id, 
+                paired_query_id, scheduled_for_utc, status, executed_at_utc, 
+                result_json, recommendation, confidence, rationale, source
+            )
+            SELECT 
+                v_survey_id, 
+                v_schedule_id, 
+                qs.query_schedule_id, 
+                @qt_followup, 
+                (SELECT query_id FROM temp_base_forecast_queries tbf 
+                 WHERE tbf.survey_id = v_survey_id 
+                 AND tbf.day_offset = v_day_offset 
+                 AND tbf.paired_followup_delay_hours = qs.delay_hours),  -- Link to Baseline Forecast
+                DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), 
+                'SUCCEEDED', 
+                DATE_ADD(DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), INTERVAL 1 MINUTE),
+                JSON_OBJECT(
+                    'recommendation', COALESCE(
+                        CASE WHEN v_day_offset = 0 AND v_survey_id IN (8, 9) AND RAND() < 0.6 THEN 'BUY' 
+                             WHEN v_day_offset = 0 AND v_survey_id = 10 AND RAND() < 0.8 THEN 'BUY'
+                             WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ),
+                    'confidence', ROUND(0.60 + RAND() * 0.35, 2),
+                    'rationale', CASE 
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset = 0 AND v_survey_id IN (8, 9) AND RAND() < 0.6 THEN 'BUY' 
+                                 WHEN v_day_offset = 0 AND v_survey_id = 10 AND RAND() < 0.8 THEN 'BUY'
+                                 WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation 
+                                 WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'BUY' THEN 'Bullish trend detected'
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset = 0 AND v_survey_id IN (8, 9) AND RAND() < 0.6 THEN 'BUY' 
+                                 WHEN v_day_offset = 0 AND v_survey_id = 10 AND RAND() < 0.8 THEN 'BUY'
+                                 WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation 
+                                 WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'SELL' THEN 'Bearish market signals'
+                        ELSE 'Stable market conditions'
+                    END,
+                    'source', ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+                ),
+                COALESCE(
+                    CASE WHEN v_day_offset = 0 AND v_survey_id IN (8, 9) AND RAND() < 0.6 THEN 'BUY' 
+                         WHEN v_day_offset = 0 AND v_survey_id = 10 AND RAND() < 0.8 THEN 'BUY'
+                         WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation 
+                         WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                    ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                ),
+                ROUND(0.60 + RAND() * 0.35, 2),
+                CASE 
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset = 0 AND v_survey_id IN (8, 9) AND RAND() < 0.6 THEN 'BUY' 
+                             WHEN v_day_offset = 0 AND v_survey_id = 10 AND RAND() < 0.8 THEN 'BUY'
+                             WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'BUY' THEN 'Bullish trend detected'
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset = 0 AND v_survey_id IN (8, 9) AND RAND() < 0.6 THEN 'BUY' 
+                             WHEN v_day_offset = 0 AND v_survey_id = 10 AND RAND() < 0.8 THEN 'BUY'
+                             WHEN v_day_offset > 0 AND RAND() < 0.75 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'SELL' THEN 'Bearish market signals'
+                    ELSE 'Stable market conditions'
+                END,
+                ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+            FROM query_schedules qs
+            LEFT JOIN temp_initial_predictions tip 
+                ON tip.survey_id = v_survey_id 
+                AND tip.day_offset = v_day_offset 
+                AND tip.delay_hours = qs.delay_hours
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_followup
+            AND qs.paired_followup_delay_hours IS NULL
+            AND v_survey_id IN (8, 9, 10)
+            ORDER BY qs.delay_hours;
+
+            -- Insert Follow-up Queries for Survey 11 (Day 1: 40% BUY, Day 2+: 50% accurate)
+            INSERT IGNORE INTO queries (
+                survey_id, schedule_id, query_schedule_id, query_type_id, 
+                paired_query_id, scheduled_for_utc, status, executed_at_utc, 
+                result_json, recommendation, confidence, rationale, source
+            )
+            SELECT 
+                v_survey_id, 
+                v_schedule_id, 
+                qs.query_schedule_id, 
+                @qt_followup, 
+                (SELECT query_id FROM temp_base_forecast_queries tbf 
+                 WHERE tbf.survey_id = v_survey_id 
+                 AND tbf.day_offset = v_day_offset 
+                 AND tbf.paired_followup_delay_hours = qs.delay_hours),  -- Link to Baseline Forecast
+                DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), 
+                'SUCCEEDED', 
+                DATE_ADD(DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), INTERVAL 1 MINUTE),
+                JSON_OBJECT(
+                    'recommendation', COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.4 THEN 'BUY' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.5 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ),
+                    'confidence', ROUND(0.60 + RAND() * 0.35, 2),
+                    'rationale', CASE 
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset = 0 AND RAND() < 0.4 THEN 'BUY' 
+                                 WHEN v_day_offset > 0 AND RAND() < 0.5 THEN tip.recommendation 
+                                 WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'BUY' THEN 'Bullish trend detected'
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset = 0 AND RAND() < 0.4 THEN 'BUY' 
+                                 WHEN v_day_offset > 0 AND RAND() < 0.5 THEN tip.recommendation 
+                                 WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'SELL' THEN 'Bearish market signals'
+                        ELSE 'Stable market conditions'
+                    END,
+                    'source', ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+                ),
+                COALESCE(
+                    CASE WHEN v_day_offset = 0 AND RAND() < 0.4 THEN 'BUY' 
+                         WHEN v_day_offset > 0 AND RAND() < 0.5 THEN tip.recommendation 
+                         WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                    ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                ),
+                ROUND(0.60 + RAND() * 0.35, 2),
+                CASE 
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.4 THEN 'BUY' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.5 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'BUY' THEN 'Bullish trend detected'
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.4 THEN 'BUY' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.5 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'SELL', 'HOLD') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'SELL' THEN 'Bearish market signals'
+                    ELSE 'Stable market conditions'
+                END,
+                ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+            FROM query_schedules qs
+            LEFT JOIN temp_initial_predictions tip 
+                ON tip.survey_id = v_survey_id 
+                AND tip.day_offset = v_day_offset 
+                AND tip.delay_hours = qs.delay_hours
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_followup
+            AND qs.paired_followup_delay_hours IS NULL
+            AND v_survey_id = 11
+            ORDER BY qs.delay_hours;
+
+            -- Insert Follow-up Queries for Surveys 15, 16 (Day 1: 90% HOLD, Day 2+: 90% accurate)
+            INSERT IGNORE INTO queries (
+                survey_id, schedule_id, query_schedule_id, query_type_id, 
+                paired_query_id, scheduled_for_utc, status, executed_at_utc, 
+                result_json, recommendation, confidence, rationale, source
+            )
+            SELECT 
+                v_survey_id, 
+                v_schedule_id, 
+                qs.query_schedule_id, 
+                @qt_followup, 
+                (SELECT query_id FROM temp_base_forecast_queries tbf 
+                 WHERE tbf.survey_id = v_survey_id 
+                 AND tbf.day_offset = v_day_offset 
+                 AND tbf.paired_followup_delay_hours = qs.delay_hours),  -- Link to Baseline Forecast
+                DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), 
+                'SUCCEEDED', 
+                DATE_ADD(DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), INTERVAL 1 MINUTE),
+                JSON_OBJECT(
+                    'recommendation', COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.9 THEN 'HOLD' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.9 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ),
+                    'confidence', ROUND(0.60 + RAND() * 0.35, 2),
+                    'rationale', CASE 
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset = 0 AND RAND() < 0.9 THEN 'HOLD' 
+                                 WHEN v_day_offset > 0 AND RAND() < 0.9 THEN tip.recommendation 
+                                 WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'BUY' THEN 'Bullish trend detected'
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset = 0 AND RAND() < 0.9 THEN 'HOLD' 
+                                 WHEN v_day_offset > 0 AND RAND() < 0.9 THEN tip.recommendation 
+                                 WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'SELL' THEN 'Bearish market signals'
+                        ELSE 'Stable market conditions'
+                    END,
+                    'source', ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+                ),
+                COALESCE(
+                    CASE WHEN v_day_offset = 0 AND RAND() < 0.9 THEN 'HOLD' 
+                         WHEN v_day_offset > 0 AND RAND() < 0.9 THEN tip.recommendation 
+                         WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                    ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                ),
+                ROUND(0.60 + RAND() * 0.35, 2),
+                CASE 
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.9 THEN 'HOLD' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.9 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'BUY' THEN 'Bullish trend detected'
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.9 THEN 'HOLD' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.9 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'SELL' THEN 'Bearish market signals'
+                    ELSE 'Stable market conditions'
+                END,
+                ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+            FROM query_schedules qs
+            LEFT JOIN temp_initial_predictions tip 
+                ON tip.survey_id = v_survey_id 
+                AND tip.day_offset = v_day_offset 
+                AND tip.delay_hours = qs.delay_hours
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_followup
+            AND qs.paired_followup_delay_hours IS NULL
+            AND v_survey_id IN (15, 16)
+            ORDER BY qs.delay_hours;
+
+            -- Insert Follow-up Queries for Survey 17 (Day 1: 60% HOLD, Day 2+: 80% accurate)
+            INSERT IGNORE INTO queries (
+                survey_id, schedule_id, query_schedule_id, query_type_id, 
+                paired_query_id, scheduled_for_utc, status, executed_at_utc, 
+                result_json, recommendation, confidence, rationale, source
+            )
+            SELECT 
+                v_survey_id, 
+                v_schedule_id, 
+                qs.query_schedule_id, 
+                @qt_followup, 
+                (SELECT query_id FROM temp_base_forecast_queries tbf 
+                 WHERE tbf.survey_id = v_survey_id 
+                 AND tbf.day_offset = v_day_offset 
+                 AND tbf.paired_followup_delay_hours = qs.delay_hours),  -- Link to Baseline Forecast
+                DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), 
+                'SUCCEEDED', 
+                DATE_ADD(DATE_ADD(v_base_time, INTERVAL qs.delay_hours HOUR), INTERVAL 1 MINUTE),
+                JSON_OBJECT(
+                    'recommendation', COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.6 THEN 'HOLD' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.8 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ),
+                    'confidence', ROUND(0.60 + RAND() * 0.35, 2),
+                    'rationale', CASE 
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset = 0 AND RAND() < 0.6 THEN 'HOLD' 
+                                 WHEN v_day_offset > 0 AND RAND() < 0.8 THEN tip.recommendation 
+                                 WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'BUY' THEN 'Bullish trend detected'
+                        WHEN COALESCE(
+                            CASE WHEN v_day_offset = 0 AND RAND() < 0.6 THEN 'HOLD' 
+                                 WHEN v_day_offset > 0 AND RAND() < 0.8 THEN tip.recommendation 
+                                 WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                            ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                        ) = 'SELL' THEN 'Bearish market signals'
+                        ELSE 'Stable market conditions'
+                    END,
+                    'source', ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+                ),
+                COALESCE(
+                    CASE WHEN v_day_offset = 0 AND RAND() < 0.6 THEN 'HOLD' 
+                         WHEN v_day_offset > 0 AND RAND() < 0.8 THEN tip.recommendation 
+                         WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                    ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                ),
+                ROUND(0.60 + RAND() * 0.35, 2),
+                CASE 
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.6 THEN 'HOLD' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.8 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'BUY' THEN 'Bullish trend detected'
+                    WHEN COALESCE(
+                        CASE WHEN v_day_offset = 0 AND RAND() < 0.6 THEN 'HOLD' 
+                             WHEN v_day_offset > 0 AND RAND() < 0.8 THEN tip.recommendation 
+                             WHEN v_day_offset = 0 THEN ELT(FLOOR(1 + RAND() * 2), 'BUY', 'SELL') END,
+                        ELT(FLOOR(1 + RAND() * 3), 'BUY', 'SELL', 'HOLD')
+                    ) = 'SELL' THEN 'Bearish market signals'
+                    ELSE 'Stable market conditions'
+                END,
+                ELT(FLOOR(1 + RAND() * 4), 'Grok Analysis', 'Market Analyst', 'External Feed', 'AI Model')
+            FROM query_schedules qs
+            LEFT JOIN temp_initial_predictions tip 
+                ON tip.survey_id = v_survey_id 
+                AND tip.day_offset = v_day_offset 
+                AND tip.delay_hours = qs.delay_hours
+            WHERE qs.schedule_id = v_schedule_id
+            AND qs.query_type_id = @qt_followup
+            AND qs.paired_followup_delay_hours IS NULL
+            AND v_survey_id = 17
             ORDER BY qs.delay_hours;
 
             SET v_day_offset = v_day_offset + 1;
@@ -808,6 +1267,20 @@ BEGIN
     END LOOP;
 
     CLOSE survey_cursor;
+
+    -- Update paired_query_id for Baseline Forecast queries
+    UPDATE queries q
+    JOIN query_schedules qs ON q.query_schedule_id = qs.query_schedule_id
+    JOIN queries q_followup ON q_followup.survey_id = q.survey_id
+        AND q_followup.query_type_id = @qt_followup
+        AND q_followup.scheduled_for_utc = DATE_ADD(q.scheduled_for_utc, INTERVAL qs.paired_followup_delay_hours HOUR)
+    SET q.paired_query_id = q_followup.query_id
+    WHERE q.query_type_id = @qt_base_fore
+    AND qs.paired_followup_delay_hours IS NOT NULL;
+
+    -- Clean up temporary tables
+    DROP TEMPORARY TABLE IF EXISTS temp_initial_predictions;
+    DROP TEMPORARY TABLE IF EXISTS temp_base_forecast_queries;
 END $$
 
 DELIMITER ;
@@ -817,4 +1290,3 @@ CALL generate_all_surveys_mock_queries();
 
 -- Clean up
 DROP PROCEDURE IF EXISTS generate_all_surveys_mock_queries;
--- ```

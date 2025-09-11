@@ -81,6 +81,7 @@ export interface CryptoQuery {
   schedule_id: number;
   query_schedule_id: number;
   query_type_id: number;
+  paired_query_id?: number; // For Baseline Forecast to link to its Follow-up
   scheduled_for_utc: string; // ISO datetime string
   status: QueryStatus;
   executed_at_utc?: string; // ISO datetime string
@@ -163,6 +164,7 @@ export interface CryptoQueryForm {
   schedule_id: number;
   query_schedule_id: number;
   query_type_id: number;
+  paired_query_id?: number; // For Baseline Forecast to link to its Follow-up
   scheduled_for_utc: string; // ISO datetime string
   status?: QueryStatus;
   executed_at_utc?: string; // ISO datetime string

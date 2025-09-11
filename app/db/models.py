@@ -75,6 +75,7 @@ class CryptoQuery(Base):
     schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.schedule_id", ondelete="RESTRICT"), index=True)
     query_schedule_id: Mapped[int] = mapped_column(ForeignKey("query_schedules.query_schedule_id", ondelete="RESTRICT"), index=True)
     query_type_id: Mapped[int] = mapped_column(ForeignKey("query_type.query_type_id", ondelete="RESTRICT"), index=True)
+    paired_query_id: Mapped[int | None] = mapped_column(Integer, default=None)  # For Baseline Forecast to link to its Follow-up
 
     scheduled_for_utc: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=False))
     status: Mapped[str] = mapped_column(

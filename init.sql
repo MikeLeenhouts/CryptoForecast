@@ -153,6 +153,7 @@ CREATE TABLE IF NOT EXISTS queries (
     schedule_id         INT NOT NULL,
     query_schedule_id   INT NOT NULL,  -- New foreign key to query_schedules
     query_type_id       INT NOT NULL,
+    paired_query_id     INT NULL,  -- For Baseline Forecast to link to its Follow-up
     scheduled_for_utc   DATETIME NOT NULL,
     status              ENUM('PLANNED','RUNNING','SUCCEEDED','FAILED','CANCELLED') NOT NULL DEFAULT 'PLANNED',
     executed_at_utc     DATETIME NULL,

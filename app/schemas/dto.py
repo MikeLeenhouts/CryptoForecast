@@ -226,6 +226,7 @@ class CryptoQueryCreate(BaseModel):
     schedule_id: int
     query_schedule_id: int
     query_type_id: int
+    paired_query_id: Optional[int] = None  # For Baseline Forecast to link to its Follow-up
 
     scheduled_for_utc: datetime.datetime
     status: Optional[QueryStatus] = "PLANNED"
@@ -243,6 +244,7 @@ class CryptoQueryUpdate(BaseModel):
     schedule_id: Optional[int] = None
     query_schedule_id: Optional[int] = None
     query_type_id: Optional[int] = None
+    paired_query_id: Optional[int] = None  # For Baseline Forecast to link to its Follow-up
 
     scheduled_for_utc: Optional[datetime.datetime] = None
     status: Optional[QueryStatus] = None
@@ -261,6 +263,7 @@ class CryptoQueryOut(BaseModel):
     schedule_id: int
     query_schedule_id: int
     query_type_id: int
+    paired_query_id: Optional[int] = None  # For Baseline Forecast to link to its Follow-up
 
     scheduled_for_utc: datetime.datetime
     status: QueryStatus

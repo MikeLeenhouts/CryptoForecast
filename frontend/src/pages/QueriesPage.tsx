@@ -132,6 +132,12 @@ export default function QueriesPage() {
       render: (value) => formatTimestamp(value as string),
     },
     {
+      key: 'paired_query_id',
+      title: 'Paired Query',
+      sortable: true,
+      render: (value) => value ? `Query ${value}` : '-',
+    },
+    {
       key: 'paired_followup_delay_hours',
       title: 'Follow-up Delay',
       sortable: true,

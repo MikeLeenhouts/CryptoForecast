@@ -15,6 +15,7 @@ export default function AssetsPage() {
   const [editingItem, setEditingItem] = useState<Asset | null>(null);
   const [formData, setFormData] = useState<AssetForm>({
     asset_name: '',
+    asset_symbol: '',
     description: '',
     asset_type_id: 0,
   });
@@ -69,7 +70,7 @@ export default function AssetsPage() {
   });
 
   const resetForm = () => {
-    setFormData({ asset_name: '', description: '', asset_type_id: 0 });
+    setFormData({ asset_name: '', asset_symbol: '', description: '', asset_type_id: 0 });
     setEditingItem(null);
   };
 
@@ -86,6 +87,7 @@ export default function AssetsPage() {
     setEditingItem(item);
     setFormData({
       asset_name: item.asset_name,
+      asset_symbol: item.asset_symbol,
       description: item.description || '',
       asset_type_id: item.asset_type_id,
     });
@@ -111,6 +113,10 @@ export default function AssetsPage() {
     {
       key: 'asset_name',
       title: 'Name',
+    },
+    {
+      key: 'asset_symbol',
+      title: 'Symbol',
     },
     {
       key: 'asset_type_id',
@@ -166,6 +172,21 @@ export default function AssetsPage() {
                 }
                 required
                 className="mt-1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="asset_symbol" className="text-sm font-medium text-gray-700">
+                Symbol *
+              </Label>
+              <Input
+                id="asset_symbol"
+                value={formData.asset_symbol}
+                onChange={(e) =>
+                  setFormData({ ...formData, asset_symbol: e.target.value })
+                }
+                required
+                className="mt-1"
+                placeholder="e.g., BTC-USD, ETH-USD, GC=F"
               />
             </div>
             <div className="space-y-2">

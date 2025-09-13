@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS assets (
     asset_id        INT AUTO_INCREMENT PRIMARY KEY,
     asset_type_id   INT NOT NULL,
     asset_name      VARCHAR(255) NOT NULL UNIQUE,
+    asset_symbol    VARCHAR(64) NOT NULL,
     description     TEXT,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_assets_asset_types
@@ -251,20 +252,20 @@ VALUES ('Derivatives', 'Options, Futures, Swaps,Contracts based on underlying as
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
 -- 2) assets (Bitcoin)
-INSERT INTO assets (asset_type_id, asset_name, description)
-SELECT at.asset_type_id, 'Bitcoin', 'BTC'
+INSERT INTO assets (asset_type_id, asset_name, description, asset_symbol)
+SELECT at.asset_type_id, 'Bitcoin', 'BTC', 'BTC-USD'
 FROM asset_types at
 WHERE at.asset_type_name = 'Cryptocurrency'
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
-INSERT INTO assets (asset_type_id, asset_name, description)
-SELECT at.asset_type_id, 'Ethereum', 'ETH'
+INSERT INTO assets (asset_type_id, asset_name, description, asset_symbol)
+SELECT at.asset_type_id, 'Ethereum', 'ETH', 'ETH-USD'
 FROM asset_types at
 WHERE at.asset_type_name = 'Cryptocurrency'
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
-INSERT INTO assets (asset_type_id, asset_name, description)
-SELECT at.asset_type_id, 'Gold', 'XAU'
+INSERT INTO assets (asset_type_id, asset_name, description, asset_symbol)
+SELECT at.asset_type_id, 'Gold', 'XAU', 'GC=F'
 FROM asset_types at
 WHERE at.asset_type_name = 'Precious_Metals'
 ON DUPLICATE KEY UPDATE description = VALUES(description);

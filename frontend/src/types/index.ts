@@ -25,6 +25,7 @@ export interface AssetType {
 export interface Asset {
   asset_id: number;
   asset_name: string;
+  asset_symbol: string;
   asset_type_id: number;
   description?: string;
 }
@@ -115,6 +116,7 @@ export interface AssetTypeForm {
 
 export interface AssetForm {
   asset_name: string;
+  asset_symbol: string;
   asset_type_id: number;
   description?: string;
 }

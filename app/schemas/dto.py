@@ -41,17 +41,20 @@ class AssetTypeOut(BaseModel):
 class AssetCreate(BaseModel):
     asset_type_id: int
     asset_name: str
+    asset_symbol: str
     description: Optional[str] = None
 
 class AssetUpdate(BaseModel):
     asset_type_id: Optional[int] = None
     asset_name: Optional[str] = None
+    asset_symbol: Optional[str] = None
     description: Optional[str] = None
 
 class AssetOut(BaseModel):
     asset_id: int
     asset_type_id: int
     asset_name: str
+    asset_symbol: str
     description: Optional[str] = None
     model_config = {"from_attributes": True}
 

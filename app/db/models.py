@@ -19,6 +19,7 @@ class Asset(Base):
     asset_id: Mapped[int] = mapped_column(primary_key=True)
     asset_type_id: Mapped[int] = mapped_column(ForeignKey("asset_types.asset_type_id", ondelete="RESTRICT"), index=True)
     asset_name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    asset_symbol: Mapped[str] = mapped_column(String(64))
     description: Mapped[str | None] = mapped_column(Text)
 
 class LLM(Base):

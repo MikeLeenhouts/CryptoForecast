@@ -50,7 +50,12 @@ CREATE TABLE IF NOT EXISTS llms (
 CREATE TABLE IF NOT EXISTS prompts (
     prompt_id       INT AUTO_INCREMENT PRIMARY KEY,
     llm_id          INT NOT NULL,
+    prompt_name     VARCHAR(255) DEFAULT NULL,
     prompt_text     TEXT NOT NULL,
+    followup_llm    TEXT,
+    attribute_1     TEXT,
+    attribute_2     TEXT,
+    attribute_3     TEXT,
     prompt_version  INT NOT NULL DEFAULT 1,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_prompts_llms

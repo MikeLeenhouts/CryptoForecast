@@ -90,18 +90,33 @@ class LLMOut(BaseModel):
 
 class PromptCreate(BaseModel):
     llm_id: int
+    prompt_name: Optional[str] = None
     prompt_text: str
+    followup_llm: Optional[str] = None
+    attribute_1: Optional[str] = None
+    attribute_2: Optional[str] = None
+    attribute_3: Optional[str] = None
     prompt_version: int = 1
 
 class PromptUpdate(BaseModel):
     llm_id: Optional[int] = None
+    prompt_name: Optional[str] = None
     prompt_text: Optional[str] = None
+    followup_llm: Optional[str] = None
+    attribute_1: Optional[str] = None
+    attribute_2: Optional[str] = None
+    attribute_3: Optional[str] = None
     prompt_version: Optional[int] = None
 
 class PromptOut(BaseModel):
     prompt_id: int
     llm_id: int
+    prompt_name: Optional[str] = None
     prompt_text: str
+    followup_llm: Optional[str] = None
+    attribute_1: Optional[str] = None
+    attribute_2: Optional[str] = None
+    attribute_3: Optional[str] = None
     prompt_version: int
     model_config = {"from_attributes": True}
 

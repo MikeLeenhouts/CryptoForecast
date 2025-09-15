@@ -41,7 +41,12 @@ export interface LLM {
 export interface Prompt {
   prompt_id: number;
   llm_id: number;
+  prompt_name?: string;
   prompt_text: string;
+  followup_llm?: string;
+  attribute_1?: string;
+  attribute_2?: string;
+  attribute_3?: string;
   prompt_version: number;
 }
 
@@ -130,7 +135,12 @@ export interface LLMForm {
 
 export interface PromptForm {
   llm_id: number;
+  prompt_name?: string;
   prompt_text: string;
+  followup_llm?: string;
+  attribute_1?: string;
+  attribute_2?: string;
+  attribute_3?: string;
   prompt_version?: number;
 }
 

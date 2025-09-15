@@ -15,7 +15,12 @@ export default function PromptsPage() {
   const [editingItem, setEditingItem] = useState<Prompt | null>(null);
   const [formData, setFormData] = useState<PromptForm>({
     llm_id: 0,
+    prompt_name: '',
     prompt_text: '',
+    followup_llm: '',
+    attribute_1: '',
+    attribute_2: '',
+    attribute_3: '',
     prompt_version: 1,
   });
 
@@ -69,7 +74,16 @@ export default function PromptsPage() {
   });
 
   const resetForm = () => {
-    setFormData({ llm_id: 0, prompt_text: '', prompt_version: 1 });
+    setFormData({ 
+      llm_id: 0, 
+      prompt_name: '', 
+      prompt_text: '', 
+      followup_llm: '', 
+      attribute_1: '', 
+      attribute_2: '', 
+      attribute_3: '', 
+      prompt_version: 1 
+    });
     setEditingItem(null);
   };
 
@@ -86,7 +100,12 @@ export default function PromptsPage() {
     setEditingItem(item);
     setFormData({
       llm_id: item.llm_id,
+      prompt_name: item.prompt_name || '',
       prompt_text: item.prompt_text,
+      followup_llm: item.followup_llm || '',
+      attribute_1: item.attribute_1 || '',
+      attribute_2: item.attribute_2 || '',
+      attribute_3: item.attribute_3 || '',
       prompt_version: item.prompt_version,
     });
     setIsDialogOpen(true);
@@ -109,6 +128,13 @@ export default function PromptsPage() {
       title: 'ID',
     },
     {
+      key: 'prompt_name',
+      title: 'Prompt Name',
+      render: (value) => {
+        return value ? <span className="font-medium">{String(value)}</span> : <span className="text-gray-400 italic">No name</span>;
+      },
+    },
+    {
       key: 'llm_id',
       title: 'LLM',
       render: (value) => {
@@ -117,11 +143,51 @@ export default function PromptsPage() {
       },
     },
     {
+      key: 'followup_llm',
+      title: 'Followup LLM',
+      render: (value) => {
+        if (!value) return <span className="text-gray-400 italic">None</span>;
+        const text = String(value);
+        const preview = text.length > 30 ? text.substring(0, 30) + '...' : text;
+        return <span className="text-sm text-gray-600">{preview}</span>;
+      },
+    },
+    {
+      key: 'attribute_1',
+      title: 'Attribute 1',
+      render: (value) => {
+        if (!value) return <span className="text-gray-400 italic">None</span>;
+        const text = String(value);
+        const preview = text.length > 20 ? text.substring(0, 20) + '...' : text;
+        return <span className="text-sm text-gray-600">{preview}</span>;
+      },
+    },
+    {
+      key: 'attribute_2',
+      title: 'Attribute 2',
+      render: (value) => {
+        if (!value) return <span className="text-gray-400 italic">None</span>;
+        const text = String(value);
+        const preview = text.length > 20 ? text.substring(0, 20) + '...' : text;
+        return <span className="text-sm text-gray-600">{preview}</span>;
+      },
+    },
+    {
+      key: 'attribute_3',
+      title: 'Attribute 3',
+      render: (value) => {
+        if (!value) return <span className="text-gray-400 italic">None</span>;
+        const text = String(value);
+        const preview = text.length > 20 ? text.substring(0, 20) + '...' : text;
+        return <span className="text-sm text-gray-600">{preview}</span>;
+      },
+    },
+    {
       key: 'prompt_text',
       title: 'Content Preview',
       render: (value) => {
         const text = String(value);
-        const preview = text.length > 100 ? text.substring(0, 100) + '...' : text;
+        const preview = text.length > 50 ? text.substring(0, 50) + '...' : text;
         return <span className="text-sm text-gray-600">{preview}</span>;
       },
     },
@@ -201,6 +267,20 @@ export default function PromptsPage() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="prompt_name" className="text-sm font-medium text-gray-700">
+                Prompt Name
+              </Label>
+              <Input
+                id="prompt_name"
+                value={formData.prompt_name || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, prompt_name: e.target.value })
+                }
+                placeholder="Enter a descriptive name for this prompt..."
+                className="mt-1"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="prompt_text" className="text-sm font-medium text-gray-700">
                 Prompt Text *
               </Label>
@@ -210,11 +290,73 @@ export default function PromptsPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, prompt_text: e.target.value })
                 }
-                rows={8}
+                rows={6}
                 placeholder="Enter the AI prompt content here..."
                 required
                 className="mt-1"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="followup_llm" className="text-sm font-medium text-gray-700">
+                Follow-up LLM
+              </Label>
+              <Textarea
+                id="followup_llm"
+                value={formData.followup_llm || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, followup_llm: e.target.value })
+                }
+                rows={3}
+                placeholder="Enter follow-up LLM configuration or instructions..."
+                className="mt-1"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="attribute_1" className="text-sm font-medium text-gray-700">
+                  Attribute 1
+                </Label>
+                <Textarea
+                  id="attribute_1"
+                  value={formData.attribute_1 || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, attribute_1: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="Custom attribute 1..."
+                  className="mt-1"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="attribute_2" className="text-sm font-medium text-gray-700">
+                  Attribute 2
+                </Label>
+                <Textarea
+                  id="attribute_2"
+                  value={formData.attribute_2 || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, attribute_2: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="Custom attribute 2..."
+                  className="mt-1"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="attribute_3" className="text-sm font-medium text-gray-700">
+                  Attribute 3
+                </Label>
+                <Textarea
+                  id="attribute_3"
+                  value={formData.attribute_3 || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, attribute_3: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="Custom attribute 3..."
+                  className="mt-1"
+                />
+              </div>
             </div>
             <div className="flex justify-end space-x-3 pt-4">
               <Button

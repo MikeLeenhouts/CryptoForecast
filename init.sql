@@ -293,33 +293,33 @@ VALUES ('Gemini', 'gemini-2.5-pro', 'https://generativelanguage.googleapis.com',
 ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
 
 -- 4) prompts (versioned)
-INSERT INTO prompts (llm_id, prompt_text, prompt_version)
-SELECT l.llm_id,
-    'Given the asset context, provide a baseline market analysis.',
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'OpenAI',
+    'Given the asset context, provide a baseline market analysis.', '', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'OpenAI'
 ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
-INSERT INTO prompts (llm_id, prompt_text, prompt_version)
-SELECT l.llm_id,
-    'Given the asset context, provide a baseline market analysis.',
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Anthropic',
+    'Given the asset context, provide a baseline market analysis.', '', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Anthropic'
 ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
-INSERT INTO prompts (llm_id, prompt_text, prompt_version)
-SELECT l.llm_id,
-    'Given the asset context, provide a baseline market analysis.',
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Grok',
+    'Given the asset context, provide a baseline market analysis.', '', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Grok'
 ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
-INSERT INTO prompts (llm_id, prompt_text, prompt_version)
-SELECT l.llm_id,
-    'Given the asset context, provide a baseline market analysis.',
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Gemini',
+    'Given the asset context, provide a baseline market analysis.', '', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Gemini'

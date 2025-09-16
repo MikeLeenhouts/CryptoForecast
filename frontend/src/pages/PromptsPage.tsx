@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DataTable from '@/components/DataTable';
 import { promptsApi, llmsApi } from '@/services/api';
-import type { Prompt, PromptForm, LLM, TableColumn } from '@/types';
+import type { Prompt, PromptForm, LLM, TableColumn, PromptType } from '@/types';
 
 export default function PromptsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -18,6 +18,7 @@ export default function PromptsPage() {
     prompt_name: '',
     prompt_text: '',
     followup_llm: 0,
+    prompt_type: 'live',
     attribute_1: '',
     attribute_2: '',
     attribute_3: '',
@@ -79,6 +80,7 @@ export default function PromptsPage() {
       prompt_name: '', 
       prompt_text: '', 
       followup_llm: 0, 
+      prompt_type: 'live',
       attribute_1: '', 
       attribute_2: '', 
       attribute_3: '', 
@@ -103,6 +105,7 @@ export default function PromptsPage() {
       prompt_name: item.prompt_name || '',
       prompt_text: item.prompt_text,
       followup_llm: item.followup_llm,
+      prompt_type: item.prompt_type,
       attribute_1: item.attribute_1 || '',
       attribute_2: item.attribute_2 || '',
       attribute_3: item.attribute_3 || '',
@@ -149,6 +152,22 @@ export default function PromptsPage() {
         if (!value) return <span className="text-gray-400 italic">None</span>;
         const llm = llms.find((l: LLM) => l.llm_id === value);
         return llm ? llm.llm_name : 'Unknown';
+      },
+    },
+    {
+      key: 'prompt_type',
+      title: 'Type',
+      render: (value) => {
+        const type = String(value);
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            type === 'live' 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-blue-100 text-blue-800'
+          }`}>
+            {type === 'live' ? 'Live' : 'Forecast'}
+          </span>
+        );
       },
     },
     {
@@ -204,7 +223,7 @@ export default function PromptsPage() {
         </div>
       </div>
 
-      <div className="w-[70%]">
+      <div className="w-[90%]">
         <DataTable
           title=""
           data={prompts}
@@ -314,6 +333,25 @@ export default function PromptsPage() {
                       {llm.llm_name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="prompt_type" className="text-sm font-medium text-gray-700">
+                Prompt Type *
+              </Label>
+              <Select
+                value={formData.prompt_type}
+                onValueChange={(value: PromptType) =>
+                  setFormData({ ...formData, prompt_type: value })
+                }
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select Prompt Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="live">Live - Real-time Analysis</SelectItem>
+                  <SelectItem value="forecast">Forecast - Predictive Analysis</SelectItem>
                 </SelectContent>
               </Select>
             </div>

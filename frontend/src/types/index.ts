@@ -8,6 +8,7 @@ export interface ApiResponse<T> {
 // Shared Types
 export type Action = "BUY" | "SELL" | "HOLD";
 export type QueryStatus = "PLANNED" | "RUNNING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+export type PromptType = "live" | "forecast";
 
 export interface ForecastPayload {
   action: Action;
@@ -44,6 +45,7 @@ export interface Prompt {
   prompt_name?: string;
   prompt_text: string;
   followup_llm: number;
+  prompt_type: PromptType;
   attribute_1?: string;
   attribute_2?: string;
   attribute_3?: string;
@@ -138,6 +140,7 @@ export interface PromptForm {
   prompt_name?: string;
   prompt_text: string;
   followup_llm: number;
+  prompt_type: PromptType;
   attribute_1?: string;
   attribute_2?: string;
   attribute_3?: string;

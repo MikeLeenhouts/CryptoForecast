@@ -8,6 +8,7 @@ import datetime
 
 Action = Literal["BUY", "SELL", "HOLD"]
 QueryStatus = Literal["PLANNED", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED"]
+PromptType = Literal["live", "forecast"]
 
 class ForecastPayload(BaseModel):
     action: Action
@@ -93,6 +94,7 @@ class PromptCreate(BaseModel):
     prompt_name: Optional[str] = None
     prompt_text: str
     followup_llm: int
+    prompt_type: PromptType
     attribute_1: Optional[str] = None
     attribute_2: Optional[str] = None
     attribute_3: Optional[str] = None
@@ -103,6 +105,7 @@ class PromptUpdate(BaseModel):
     prompt_name: Optional[str] = None
     prompt_text: Optional[str] = None
     followup_llm: Optional[int] = None
+    prompt_type: Optional[PromptType] = None
     attribute_1: Optional[str] = None
     attribute_2: Optional[str] = None
     attribute_3: Optional[str] = None
@@ -114,6 +117,7 @@ class PromptOut(BaseModel):
     prompt_name: Optional[str] = None
     prompt_text: str
     followup_llm: int
+    prompt_type: PromptType
     attribute_1: Optional[str] = None
     attribute_2: Optional[str] = None
     attribute_3: Optional[str] = None

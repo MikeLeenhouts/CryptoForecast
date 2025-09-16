@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS prompts (
     prompt_name     VARCHAR(255) DEFAULT NULL,
     prompt_text     TEXT NOT NULL,
     followup_llm    INT NOT NULL,
+    prompt_type     ENUM('live', 'forecast') NOT NULL,
     attribute_1     TEXT,
     attribute_2     TEXT,
     attribute_3     TEXT,
@@ -65,9 +66,10 @@ CREATE TABLE IF NOT EXISTS prompts (
         FOREIGN KEY (followup_llm) REFERENCES llms(llm_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     -- prefix index on TEXT required for uniqueness with TEXT in MySQL
-    UNIQUE INDEX unique_prompt (llm_id, prompt_text(255), prompt_version),
+    UNIQUE INDEX unique_prompt (llm_id, prompt_text(255), prompt_version, prompt_type),
     INDEX idx_llm_id (llm_id),
-    INDEX idx_followup_llm_id (followup_llm)
+    INDEX idx_followup_llm_id (followup_llm),
+    INDEX idx_prompt_type (prompt_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
@@ -296,34 +298,68 @@ INSERT INTO llms (llm_name, llm_model, api_url, api_key_secret)
 VALUES ('Gemini', 'gemini-2.5-pro', 'https://generativelanguage.googleapis.com', 'GEMINI_API_KEY')
 ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
 
--- 4) prompts (versioned)
-INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
-SELECT l.llm_id, 'OpenAI',
-    'Given the asset context, provide a baseline market analysis.', l.llm_id, '', '', '',
+-- 4) prompts (versioned with prompt_type)
+-- Live prompts for real-time market analysis
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'OpenAI Live Analysis',
+    'Given the current asset context and real-time market data, provide an immediate market analysis with actionable recommendations.', l.llm_id, 'live', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'OpenAI'
 ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
-INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
-SELECT l.llm_id, 'Anthropic',
-    'Given the asset context, provide a baseline market analysis.', l.llm_id, '', '', '',
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Anthropic Live Analysis',
+    'Analyze the current market conditions for this asset and provide real-time trading insights based on live data feeds.', l.llm_id, 'live', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Anthropic'
 ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
-INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
-SELECT l.llm_id, 'Grok',
-    'Given the asset context, provide a baseline market analysis.', l.llm_id, '', '', '',
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Grok Live Analysis',
+    'Using live market data, assess the immediate investment opportunity for this asset with current risk factors.', l.llm_id, 'live', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Grok'
 ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
-INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
-SELECT l.llm_id, 'Gemini',
-    'Given the asset context, provide a baseline market analysis.', l.llm_id, '', '', '',
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Gemini Live Analysis',
+    'Provide a live market assessment for this asset, focusing on current trends and immediate market sentiment.', l.llm_id, 'live', '', '', '',
+    1
+FROM llms l
+WHERE l.llm_name = 'Gemini'
+ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
+
+-- Forecast prompts for predictive market analysis
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'OpenAI Forecast Analysis',
+    'Based on historical data and market patterns, provide a predictive forecast for this asset over the specified time horizon.', l.llm_id, 'forecast', '', '', '',
+    1
+FROM llms l
+WHERE l.llm_name = 'OpenAI'
+ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
+
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Anthropic Forecast Analysis',
+    'Generate a forward-looking market forecast for this asset, considering economic indicators and trend analysis.', l.llm_id, 'forecast', '', '', '',
+    1
+FROM llms l
+WHERE l.llm_name = 'Anthropic'
+ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
+
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Grok Forecast Analysis',
+    'Create a predictive model forecast for this asset, incorporating technical analysis and market cycle predictions.', l.llm_id, 'forecast', '', '', '',
+    1
+FROM llms l
+WHERE l.llm_name = 'Grok'
+ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
+
+INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
+SELECT l.llm_id, 'Gemini Forecast Analysis',
+    'Develop a comprehensive forecast for this asset using quantitative models and future market scenario analysis.', l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Gemini'

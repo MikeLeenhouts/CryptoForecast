@@ -4,8 +4,13 @@ SQLAlchemy==2.0.30
 aiomysql
 python-dotenv
 cryptography
+anthropic
+openai
 
 pytest
 pytest-asyncio
 httpx
 python-dotenv
+
+google-generativeai==0.8.3
+pydantic==2.8.2

@@ -2,6 +2,10 @@ from openai import OpenAI
 from enum import Enum
 from pydantic import BaseModel, Field
 from os import getenv
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 llm_name= "OpenAI"
 llm_model = "gpt-4o"

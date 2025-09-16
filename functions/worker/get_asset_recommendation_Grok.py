@@ -33,7 +33,7 @@ class AssetRecommendation(BaseModel):
     explanation: str = Field(..., description="Brief explanation of why")
     references: str = Field(..., description="References, e.g., 'Wall Street Journal, NY Stock Exchange'")
 
-def get_asset_recommendation_OpenAI(asset_name: str, prompt: str,model: str) -> AssetRecommendation:
+def get_asset_recommendation_Grok(asset_name: str, prompt: str,model: str) -> AssetRecommendation:
     prompt_asset = prompt.format(asset_name=asset_name)
     try:
         response = client.beta.chat.completions.parse(
@@ -52,12 +52,12 @@ def get_asset_recommendation_OpenAI(asset_name: str, prompt: str,model: str) -> 
         )
         recommendation = response.choices[0].message.parsed
         if not recommendation:
-            raise Exception("Failed to parse response from OpenAI")
+            raise Exception("Failed to parse response from Grok.")
         return recommendation
     except Exception as e:
-        raise Exception(f"Error getting recommendation from OpenAI: {str(e)}")
+        raise Exception(f"Error getting recommendation from Grok: {str(e)}")
 
-Result = get_asset_recommendation_OpenAI(asset_name, prompt, llm_model)
+Result = get_asset_recommendation_Grok(asset_name, prompt, llm_model)
 
 # Assign the four LLM Query Return values to variables for database storage
 recommendation = Result.recommendation.value  # Extract the string value from the enum

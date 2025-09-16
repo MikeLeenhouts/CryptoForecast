@@ -18,6 +18,10 @@ cryptoforecasedatabase
 MYSQL_USER: myuser
 MYSQL_PASSWORD: userpass123
 
+## Python PIP Install 
+C:\Users\mikel\AppData\Local\Programs\Python\Python311\python.exe -m pip install --upgrade openai
+C:\Users\mikel\AppData\Local\Programs\Python\Python311\python.exe -m pip install google-generativeai
+
 ## Cline auto approve commands
 Auto-approve for this session: Approves all actions for the current VS Code session.
 Auto-approve for this workspace: Applies to the current project/workspace.

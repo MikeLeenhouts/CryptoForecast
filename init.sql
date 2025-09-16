@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS prompts (
     llm_id          INT NOT NULL,
     prompt_name     VARCHAR(255) DEFAULT NULL,
     prompt_text     TEXT NOT NULL,
-    followup_llm    TEXT,
+    followup_llm    INT NOT NULL,
     attribute_1     TEXT,
     attribute_2     TEXT,
     attribute_3     TEXT,
@@ -61,9 +61,13 @@ CREATE TABLE IF NOT EXISTS prompts (
     CONSTRAINT fk_prompts_llms
         FOREIGN KEY (llm_id) REFERENCES llms(llm_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_prompts_followup_llms
+        FOREIGN KEY (followup_llm) REFERENCES llms(llm_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     -- prefix index on TEXT required for uniqueness with TEXT in MySQL
     UNIQUE INDEX unique_prompt (llm_id, prompt_text(255), prompt_version),
-    INDEX idx_llm_id (llm_id)
+    INDEX idx_llm_id (llm_id),
+    INDEX idx_followup_llm_id (followup_llm)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
@@ -295,7 +299,7 @@ ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
 -- 4) prompts (versioned)
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'OpenAI',
-    'Given the asset context, provide a baseline market analysis.', '', '', '', '',
+    'Given the asset context, provide a baseline market analysis.', l.llm_id, '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'OpenAI'
@@ -303,7 +307,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Anthropic',
-    'Given the asset context, provide a baseline market analysis.', '', '', '', '',
+    'Given the asset context, provide a baseline market analysis.', l.llm_id, '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Anthropic'
@@ -311,7 +315,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Grok',
-    'Given the asset context, provide a baseline market analysis.', '', '', '', '',
+    'Given the asset context, provide a baseline market analysis.', l.llm_id, '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Grok'
@@ -319,7 +323,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Gemini',
-    'Given the asset context, provide a baseline market analysis.', '', '', '', '',
+    'Given the asset context, provide a baseline market analysis.', l.llm_id, '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Gemini'

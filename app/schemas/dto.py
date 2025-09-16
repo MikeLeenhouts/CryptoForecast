@@ -92,7 +92,7 @@ class PromptCreate(BaseModel):
     llm_id: int
     prompt_name: Optional[str] = None
     prompt_text: str
-    followup_llm: Optional[str] = None
+    followup_llm: int
     attribute_1: Optional[str] = None
     attribute_2: Optional[str] = None
     attribute_3: Optional[str] = None
@@ -102,7 +102,7 @@ class PromptUpdate(BaseModel):
     llm_id: Optional[int] = None
     prompt_name: Optional[str] = None
     prompt_text: Optional[str] = None
-    followup_llm: Optional[str] = None
+    followup_llm: Optional[int] = None
     attribute_1: Optional[str] = None
     attribute_2: Optional[str] = None
     attribute_3: Optional[str] = None
@@ -113,7 +113,7 @@ class PromptOut(BaseModel):
     llm_id: int
     prompt_name: Optional[str] = None
     prompt_text: str
-    followup_llm: Optional[str] = None
+    followup_llm: int
     attribute_1: Optional[str] = None
     attribute_2: Optional[str] = None
     attribute_3: Optional[str] = None

@@ -17,7 +17,7 @@ export default function PromptsPage() {
     llm_id: 0,
     prompt_name: '',
     prompt_text: '',
-    followup_llm: '',
+    followup_llm: 0,
     attribute_1: '',
     attribute_2: '',
     attribute_3: '',
@@ -78,7 +78,7 @@ export default function PromptsPage() {
       llm_id: 0, 
       prompt_name: '', 
       prompt_text: '', 
-      followup_llm: '', 
+      followup_llm: 0, 
       attribute_1: '', 
       attribute_2: '', 
       attribute_3: '', 
@@ -102,7 +102,7 @@ export default function PromptsPage() {
       llm_id: item.llm_id,
       prompt_name: item.prompt_name || '',
       prompt_text: item.prompt_text,
-      followup_llm: item.followup_llm || '',
+      followup_llm: item.followup_llm,
       attribute_1: item.attribute_1 || '',
       attribute_2: item.attribute_2 || '',
       attribute_3: item.attribute_3 || '',
@@ -147,9 +147,8 @@ export default function PromptsPage() {
       title: 'Followup LLM',
       render: (value) => {
         if (!value) return <span className="text-gray-400 italic">None</span>;
-        const text = String(value);
-        const preview = text.length > 30 ? text.substring(0, 30) + '...' : text;
-        return <span className="text-sm text-gray-600">{preview}</span>;
+        const llm = llms.find((l: LLM) => l.llm_id === value);
+        return llm ? llm.llm_name : 'Unknown';
       },
     },
     {
@@ -298,18 +297,25 @@ export default function PromptsPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="followup_llm" className="text-sm font-medium text-gray-700">
-                Follow-up LLM
+                Follow-up LLM *
               </Label>
-              <Textarea
-                id="followup_llm"
-                value={formData.followup_llm || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, followup_llm: e.target.value })
+              <Select
+                value={formData.followup_llm.toString()}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, followup_llm: parseInt(value) })
                 }
-                rows={3}
-                placeholder="Enter follow-up LLM configuration or instructions..."
-                className="mt-1"
-              />
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select Follow-up LLM" />
+                </SelectTrigger>
+                <SelectContent>
+                  {llms.map((llm: LLM) => (
+                    <SelectItem key={llm.llm_id} value={llm.llm_id.toString()}>
+                      {llm.llm_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">

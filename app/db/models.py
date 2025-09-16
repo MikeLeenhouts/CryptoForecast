@@ -36,7 +36,7 @@ class Prompt(Base):
     llm_id: Mapped[int] = mapped_column(ForeignKey("llms.llm_id", ondelete="RESTRICT"), index=True)
     prompt_name: Mapped[str | None] = mapped_column(String(255), default=None)
     prompt_text: Mapped[str] = mapped_column(Text)
-    followup_llm: Mapped[str | None] = mapped_column(Text, default=None)
+    followup_llm: Mapped[int] = mapped_column(ForeignKey("llms.llm_id", ondelete="RESTRICT"), index=True)
     attribute_1: Mapped[str | None] = mapped_column(Text, default=None)
     attribute_2: Mapped[str | None] = mapped_column(Text, default=None)
     attribute_3: Mapped[str | None] = mapped_column(Text, default=None)

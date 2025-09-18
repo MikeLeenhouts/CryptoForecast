@@ -135,25 +135,30 @@ CREATE TABLE IF NOT EXISTS query_schedules (
 -- 8) surveys
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS surveys (
-    survey_id     INT AUTO_INCREMENT PRIMARY KEY,
-    asset_id      INT NOT NULL,
-    schedule_id   INT NOT NULL,
-    prompt_id     INT NOT NULL,
-    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    survey_id          INT AUTO_INCREMENT PRIMARY KEY,
+    asset_id           INT NOT NULL,
+    schedule_id        INT NOT NULL,
+    live_prompt_id     INT NOT NULL,
+    forecast_prompt_id INT NOT NULL,
+    is_active          BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_surveys_assets
         FOREIGN KEY (asset_id) REFERENCES assets(asset_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_surveys_schedules
         FOREIGN KEY (schedule_id) REFERENCES schedules(schedule_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_surveys_prompts
-        FOREIGN KEY (prompt_id) REFERENCES prompts(prompt_id)
+    CONSTRAINT fk_surveys_live_prompts
+        FOREIGN KEY (live_prompt_id) REFERENCES prompts(prompt_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
-    UNIQUE INDEX unique_survey (asset_id, schedule_id, prompt_id),
+    CONSTRAINT fk_surveys_forecast_prompts
+        FOREIGN KEY (forecast_prompt_id) REFERENCES prompts(prompt_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    UNIQUE INDEX unique_survey (asset_id, schedule_id, live_prompt_id, forecast_prompt_id),
     INDEX idx_asset_id (asset_id),
     INDEX idx_schedule_id (schedule_id),
-    INDEX idx_prompt_id (prompt_id)
+    INDEX idx_live_prompt_id (live_prompt_id),
+    INDEX idx_forecast_prompt_id (forecast_prompt_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
@@ -302,15 +307,16 @@ ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
 -- Live prompts for real-time market analysis
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'OpenAI Live Analysis',
-    'Given the current asset context and real-time market data, provide an immediate market analysis with actionable recommendations.', l.llm_id, 'live', '', '', '',
-    1
+    'Use {followup_llm} query services to conduct that following analysis and then provide a recommendation. Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.',
+    l.llm_id, 'live', '', '', '', 1
 FROM llms l
 WHERE l.llm_name = 'OpenAI'
 ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Anthropic Live Analysis',
-    'Analyze the current market conditions for this asset and provide real-time trading insights based on live data feeds.', l.llm_id, 'live', '', '', '',
+    'Use {followup_llm} query services to conduct that following analysis and then provide a recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.',
+    l.llm_id, 'live', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Anthropic'
@@ -318,7 +324,8 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Grok Live Analysis',
-    'Using live market data, assess the immediate investment opportunity for this asset with current risk factors.', l.llm_id, 'live', '', '', '',
+    'Use {followup_llm} query services to conduct that following analysis and then provide a recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.',
+    l.llm_id, 'live', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Grok'
@@ -326,7 +333,8 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Gemini Live Analysis',
-    'Provide a live market assessment for this asset, focusing on current trends and immediate market sentiment.', l.llm_id, 'live', '', '', '',
+    'Use {followup_llm} query services to conduct that following analysis and then provide a recommendation. Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.',
+    l.llm_id, 'live', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Gemini'
@@ -335,7 +343,8 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 -- Forecast prompts for predictive market analysis
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'OpenAI Forecast Analysis',
-    'Based on historical data and market patterns, provide a predictive forecast for this asset over the specified time horizon.', l.llm_id, 'forecast', '', '', '',
+    'Use {followup_llm} query services to conduct that following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {followup_llm} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
+    l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'OpenAI'
@@ -343,7 +352,8 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Anthropic Forecast Analysis',
-    'Generate a forward-looking market forecast for this asset, considering economic indicators and trend analysis.', l.llm_id, 'forecast', '', '', '',
+    'Use {followup_llm} query services to conduct that following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {followup_llm} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
+    l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Anthropic'
@@ -351,7 +361,8 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Grok Forecast Analysis',
-    'Create a predictive model forecast for this asset, incorporating technical analysis and market cycle predictions.', l.llm_id, 'forecast', '', '', '',
+    'Use {followup_llm} query services to conduct that following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {followup_llm} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
+    l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Grok'
@@ -359,7 +370,8 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, followup_llm, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Gemini Forecast Analysis',
-    'Develop a comprehensive forecast for this asset using quantitative models and future market scenario analysis.', l.llm_id, 'forecast', '', '', '',
+    'Use {followup_llm} query services to conduct that following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {followup_llm} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
+    l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l
 WHERE l.llm_name = 'Gemini'
@@ -414,8 +426,6 @@ JOIN (SELECT 1 h UNION ALL SELECT 6 UNION ALL SELECT 11
 JOIN query_type qt ON qt.query_type_name = 'Follow-up'
 WHERE s.schedule_name = '10-Day_6-Follow-ups';
 
-
-
 -- Schedule ID=2, 14-Day_7-Follow-ups query_schedules
 --    Initial Baseline @ T0
 INSERT IGNORE INTO query_schedules (schedule_id, query_type_id, delay_hours, paired_followup_delay_hours)
@@ -444,27 +454,42 @@ WHERE s.schedule_name = '14-Day_7-Follow-ups';
 
 
 -- 8) surveys (activate for two days, then could be deactivated later; seed leaves TRUE)
-INSERT INTO surveys (asset_id, schedule_id, prompt_id, is_active)
-SELECT a.asset_id, s.schedule_id, p.prompt_id, TRUE
+INSERT INTO surveys (asset_id, schedule_id, live_prompt_id, forecast_prompt_id, is_active)
+SELECT a.asset_id, s.schedule_id, 
+       p_live.prompt_id as live_prompt_id,
+       p_forecast.prompt_id as forecast_prompt_id,
+       TRUE
 FROM assets a
 JOIN schedules s ON s.schedule_name = '10-Day_6-Follow-ups'
-JOIN prompts p   ON p.prompt_version = 1
+JOIN prompts p_live ON p_live.prompt_version = 1 AND p_live.prompt_type = 'live'
+JOIN prompts p_forecast ON p_forecast.prompt_version = 1 AND p_forecast.prompt_type = 'forecast' 
+    AND p_forecast.llm_id = p_live.llm_id
 WHERE a.asset_name = 'Bitcoin'
 ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
 
-INSERT INTO surveys (asset_id, schedule_id, prompt_id, is_active)
-SELECT a.asset_id, s.schedule_id, p.prompt_id, TRUE
+INSERT INTO surveys (asset_id, schedule_id, live_prompt_id, forecast_prompt_id, is_active)
+SELECT a.asset_id, s.schedule_id, 
+       p_live.prompt_id as live_prompt_id,
+       p_forecast.prompt_id as forecast_prompt_id,
+       TRUE
 FROM assets a
 JOIN schedules s ON s.schedule_name = '10-Day_6-Follow-ups'
-JOIN prompts p   ON p.prompt_version = 1
+JOIN prompts p_live ON p_live.prompt_version = 1 AND p_live.prompt_type = 'live'
+JOIN prompts p_forecast ON p_forecast.prompt_version = 1 AND p_forecast.prompt_type = 'forecast' 
+    AND p_forecast.llm_id = p_live.llm_id
 WHERE a.asset_name = 'Ethereum'
 ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
 
-INSERT INTO surveys (asset_id, schedule_id, prompt_id, is_active)
-SELECT a.asset_id, s.schedule_id, p.prompt_id, TRUE
+INSERT INTO surveys (asset_id, schedule_id, live_prompt_id, forecast_prompt_id, is_active)
+SELECT a.asset_id, s.schedule_id, 
+       p_live.prompt_id as live_prompt_id,
+       p_forecast.prompt_id as forecast_prompt_id,
+       TRUE
 FROM assets a
 JOIN schedules s ON s.schedule_name = '14-Day_7-Follow-ups'
-JOIN prompts p   ON p.prompt_version = 1
+JOIN prompts p_live ON p_live.prompt_version = 1 AND p_live.prompt_type = 'live'
+JOIN prompts p_forecast ON p_forecast.prompt_version = 1 AND p_forecast.prompt_type = 'forecast' 
+    AND p_forecast.llm_id = p_live.llm_id
 WHERE a.asset_name = 'Gold'
 ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
 
@@ -472,15 +497,21 @@ ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
 -- Convenience IDs
 SET @asset_id = (SELECT asset_id FROM assets WHERE asset_name='Bitcoin' LIMIT 1);
 SET @schedule_id = (SELECT schedule_id FROM schedules WHERE schedule_name='10-Day_6-Follow-ups' LIMIT 1);
-SET @prompt_id = (
+SET @live_prompt_id = (
     SELECT p.prompt_id
     FROM prompts p JOIN llms l ON l.llm_id = p.llm_id
-    WHERE p.prompt_version = 1 AND l.llm_name = 'OpenAI'
+    WHERE p.prompt_version = 1 AND l.llm_name = 'OpenAI' AND p.prompt_type = 'live'
+    LIMIT 1
+);
+SET @forecast_prompt_id = (
+    SELECT p.prompt_id
+    FROM prompts p JOIN llms l ON l.llm_id = p.llm_id
+    WHERE p.prompt_version = 1 AND l.llm_name = 'OpenAI' AND p.prompt_type = 'forecast'
     LIMIT 1
 );
 SET @survey_id = (
     SELECT survey_id FROM surveys
-    WHERE asset_id=@asset_id AND schedule_id=@schedule_id AND prompt_id=@prompt_id
+    WHERE asset_id=@asset_id AND schedule_id=@schedule_id AND live_prompt_id=@live_prompt_id AND forecast_prompt_id=@forecast_prompt_id
     LIMIT 1
 );
 

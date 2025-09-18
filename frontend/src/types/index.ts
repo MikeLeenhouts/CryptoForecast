@@ -79,7 +79,8 @@ export interface Survey {
   survey_id: number;
   asset_id: number;
   schedule_id: number;
-  prompt_id: number;
+  live_prompt_id: number;
+  forecast_prompt_id: number;
   is_active: boolean;
 }
 
@@ -170,7 +171,8 @@ export interface QueryScheduleForm {
 export interface SurveyForm {
   asset_id: number;
   schedule_id: number;
-  prompt_id: number;
+  live_prompt_id: number;
+  forecast_prompt_id: number;
   is_active?: boolean;
 }
 

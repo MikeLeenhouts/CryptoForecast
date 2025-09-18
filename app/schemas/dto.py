@@ -205,20 +205,23 @@ class QueryScheduleOut(BaseModel):
 class SurveyCreate(BaseModel):
     asset_id: int
     schedule_id: int
-    prompt_id: int
+    live_prompt_id: int
+    forecast_prompt_id: int
     is_active: bool = True
 
 class SurveyUpdate(BaseModel):
     asset_id: Optional[int] = None
     schedule_id: Optional[int] = None
-    prompt_id: Optional[int] = None
+    live_prompt_id: Optional[int] = None
+    forecast_prompt_id: Optional[int] = None
     is_active: Optional[bool] = None
 
 class SurveyOut(BaseModel):
     survey_id: int
     asset_id: int
     schedule_id: int
-    prompt_id: int
+    live_prompt_id: int
+    forecast_prompt_id: int
     is_active: bool
     model_config = {"from_attributes": True}
 

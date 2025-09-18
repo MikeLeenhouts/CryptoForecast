@@ -2,17 +2,12 @@ from openai import OpenAI
 from enum import Enum
 from pydantic import BaseModel, Field
 from os import getenv
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 llm_name= "OpenAI"
 llm_model = "gpt-4o"
 
 asset_name="Bitcoin"
 prompt = "Provide a recommendation for the asset {asset_name}. Include a buy, sell, or hold recommendation, a confidence level between 0.0 and 1.0, a brief explanation, and any relevant references."
-
 
 LLM_API_KEY_ID = llm_name + "_API_KEY"
 LLM_API_KEY = str(getenv(LLM_API_KEY_ID))

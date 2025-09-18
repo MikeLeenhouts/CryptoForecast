@@ -14,7 +14,8 @@ export default function SurveysPage() {
   const [formData, setFormData] = useState<SurveyForm>({
     asset_id: 0,
     schedule_id: 0,
-    prompt_id: 0,
+    live_prompt_id: 0,
+    forecast_prompt_id: 0,
     is_active: true,
   });
 
@@ -101,7 +102,8 @@ export default function SurveysPage() {
     setFormData({
       asset_id: 0,
       schedule_id: 0,
-      prompt_id: 0,
+      live_prompt_id: 0,
+      forecast_prompt_id: 0,
       is_active: true,
     });
     setEditingItem(null);
@@ -121,7 +123,8 @@ export default function SurveysPage() {
     setFormData({
       asset_id: item.asset_id,
       schedule_id: item.schedule_id,
-      prompt_id: item.prompt_id,
+      live_prompt_id: item.live_prompt_id,
+      forecast_prompt_id: item.forecast_prompt_id,
       is_active: item.is_active,
     });
     setIsDialogOpen(true);
@@ -152,15 +155,19 @@ export default function SurveysPage() {
       },
     },
     {
-      key: 'llm_name' as keyof Survey,
-      title: 'LLM',
+      key: 'live_prompt_id',
+      title: 'Live Prompt',
       render: (value, record) => {
-        const prompt = prompts.find((p: Prompt) => p.prompt_id === record.prompt_id);
-        if (prompt) {
-          const llm = llms.find((l: LLM) => l.llm_id === prompt.llm_id);
-          return llm ? llm.llm_name : 'Unknown LLM';
-        }
-        return 'Unknown';
+        const livePrompt = prompts.find((p: Prompt) => p.prompt_id === record.live_prompt_id);
+        return livePrompt ? livePrompt.prompt_name || `Prompt ${livePrompt.prompt_id}` : 'Unknown';
+      },
+    },
+    {
+      key: 'forecast_prompt_id',
+      title: 'Forecast Prompt',
+      render: (value, record) => {
+        const forecastPrompt = prompts.find((p: Prompt) => p.prompt_id === record.forecast_prompt_id);
+        return forecastPrompt ? forecastPrompt.prompt_name || `Prompt ${forecastPrompt.prompt_id}` : 'Unknown';
       },
     },
     {
@@ -169,21 +176,6 @@ export default function SurveysPage() {
       render: (value) => {
         const schedule = schedules.find((s: Schedule) => s.schedule_id === value);
         return schedule ? schedule.schedule_name : `Schedule ${value}`;
-      },
-    },
-    {
-      key: 'prompt_id',
-      title: 'Prompt ID',
-      render: (value) => {
-        return value;
-      },
-    },
-    {
-      key: 'prompt_version' as keyof Survey,
-      title: 'Version',
-      render: (value, record) => {
-        const prompt = prompts.find((p: Prompt) => p.prompt_id === record.prompt_id);
-        return prompt ? `v${prompt.prompt_version}` : 'Unknown';
       },
     },
     {
@@ -276,27 +268,55 @@ export default function SurveysPage() {
                 </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="prompt_id" className="text-sm font-medium text-gray-700">
-                Prompt *
-              </Label>
-              <Select
-                value={formData.prompt_id.toString()}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, prompt_id: parseInt(value) })
-                }
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select prompt" />
-                </SelectTrigger>
-                <SelectContent>
-                  {prompts.map((prompt: Prompt) => (
-                    <SelectItem key={prompt.prompt_id} value={prompt.prompt_id.toString()}>
-                      Prompt {prompt.prompt_id} (v{prompt.prompt_version})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="live_prompt_id" className="text-sm font-medium text-gray-700">
+                  Live Prompt *
+                </Label>
+                <Select
+                  value={formData.live_prompt_id.toString()}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, live_prompt_id: parseInt(value) })
+                  }
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select live prompt" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {prompts.filter((p: Prompt) => p.prompt_type === 'live').map((prompt: Prompt) => {
+                      return (
+                        <SelectItem key={prompt.prompt_id} value={prompt.prompt_id.toString()}>
+                          {prompt.prompt_name || `Prompt ${prompt.prompt_id}`}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="forecast_prompt_id" className="text-sm font-medium text-gray-700">
+                  Forecast Prompt *
+                </Label>
+                <Select
+                  value={formData.forecast_prompt_id.toString()}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, forecast_prompt_id: parseInt(value) })
+                  }
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select forecast prompt" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {prompts.filter((p: Prompt) => p.prompt_type === 'forecast').map((prompt: Prompt) => {
+                      return (
+                        <SelectItem key={prompt.prompt_id} value={prompt.prompt_id.toString()}>
+                          {prompt.prompt_name || `Prompt ${prompt.prompt_id}`}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="is_active" className="text-sm font-medium text-gray-700">

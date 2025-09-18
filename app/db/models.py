@@ -70,7 +70,8 @@ class Survey(Base):
     survey_id: Mapped[int] = mapped_column(primary_key=True)
     asset_id: Mapped[int] = mapped_column(ForeignKey("assets.asset_id", ondelete="RESTRICT"), index=True)
     schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.schedule_id", ondelete="RESTRICT"), index=True)
-    prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.prompt_id", ondelete="RESTRICT"), index=True)
+    live_prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.prompt_id", ondelete="RESTRICT"), index=True)
+    forecast_prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.prompt_id", ondelete="RESTRICT"), index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 

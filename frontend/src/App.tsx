@@ -114,6 +114,9 @@ const DashboardPage = () => {
                     <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                     <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
                     <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LLM</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Followup LLM</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Live Prompt</th>
+                    <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Forecast Prompt</th>
                     <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
                     <th className="px-6 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   </tr>
@@ -121,15 +124,20 @@ const DashboardPage = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {activeSurveys.map((survey) => {
                     const asset = assets.find(a => a.asset_id === survey.asset_id);
-                    const prompt = prompts.find(p => p.prompt_id === survey.prompt_id);
-                    const llm = llms.find(l => l.llm_id === prompt?.llm_id);
+                    const livePrompt = prompts.find(p => p.prompt_id === survey.live_prompt_id);
+                    const forecastPrompt = prompts.find(p => p.prompt_id === survey.forecast_prompt_id);
+                    const liveLlm = llms.find(l => l.llm_id === livePrompt?.llm_id);
+                    const followupLlm = llms.find(l => l.llm_id === livePrompt?.followup_llm);
                     const schedule = schedules.find(s => s.schedule_id === survey.schedule_id);
                     
                     return (
                       <tr key={survey.survey_id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{survey.survey_id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{asset?.asset_name || 'Unknown'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{llm?.llm_name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{liveLlm?.llm_name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{followupLlm?.llm_name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{livePrompt?.prompt_name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{forecastPrompt?.prompt_name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{schedule?.schedule_name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs rounded-full ${survey.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -141,7 +149,7 @@ const DashboardPage = () => {
                   })}
                   {activeSurveys.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No active surveys found</td>
+                      <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No active surveys found</td>
                     </tr>
                   )}
                 </tbody>

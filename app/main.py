@@ -93,7 +93,8 @@ surveys = build_crud_router(
     allowed_filters={
         "asset_id": lambda m, v: m.asset_id == v,
         "schedule_id": lambda m, v: m.schedule_id == v,
-        "prompt_id": lambda m, v: m.prompt_id == v,
+        "live_prompt_id": lambda m, v: m.live_prompt_id == v,
+        "forecast_prompt_id": lambda m, v: m.forecast_prompt_id == v,
         "is_active": lambda m, v: m.is_active == (str(v).lower() in ("1", "true", "t", "yes", "y")),
     },
 )

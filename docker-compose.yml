@@ -5,7 +5,7 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: rootpass123
-      MYSQL_DATABASE: cryptoforecasedatabase
+      MYSQL_DATABASE: cryptoforecastdatabase
       MYSQL_USER: myuser
       MYSQL_PASSWORD: userpass123
     ports:
@@ -25,8 +25,8 @@ services:
     container_name: cryptoforecast-api
     environment:
       # Async DSN for the running app
-      DATABASE_URL: mysql+aiomysql://myuser:userpass123@mysql:3306/cryptoforecasedatabase
-      # DATABASE_URL: mysql+aiomysql://appuser:apppass123@mysql:3306/cryptoforecasedatabase?charset=utf8mb4
+      DATABASE_URL: mysql+aiomysql://myuser:userpass123@mysql:3306/cryptoforecastdatabase
+      # DATABASE_URL: mysql+aiomysql://appuser:apppass123@mysql:3306/cryptoforecastdatabase?charset=utf8mb4
       SQL_ECHO: "0"
     depends_on:
       mysql:

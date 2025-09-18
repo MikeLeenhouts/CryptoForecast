@@ -21,11 +21,12 @@ sys.modules['app.db.session'] = MagicMock()
 
 # Create mock database models
 class MockSurvey:
-    def __init__(self, survey_id, asset_id, schedule_id, prompt_id, is_active=True):
+    def __init__(self, survey_id, asset_id, schedule_id, live_prompt_id, forecast_prompt_id, is_active=True):
         self.survey_id = survey_id
         self.asset_id = asset_id
         self.schedule_id = schedule_id
-        self.prompt_id = prompt_id
+        self.live_prompt_id = live_prompt_id
+        self.forecast_prompt_id = forecast_prompt_id
         self.is_active = is_active
 
 class MockAsset:
@@ -92,9 +93,9 @@ def create_mock_data():
     
     # Mock surveys
     surveys = [
-        MockSurvey(1, 1, 1, 1, True),
-        MockSurvey(2, 2, 1, 2, True),
-        MockSurvey(3, 1, 2, 1, False),  # Inactive survey
+        MockSurvey(1, 1, 1, 1, 5, True),  # Bitcoin with live prompt 1, forecast prompt 5
+        MockSurvey(2, 2, 1, 2, 6, True),  # Ethereum with live prompt 2, forecast prompt 6
+        MockSurvey(3, 1, 2, 1, 5, False),  # Inactive survey
     ]
     
     # Mock assets
@@ -129,8 +130,10 @@ def create_mock_data():
     
     # Mock prompts
     prompts = [
-        MockPrompt(1, 1, "Bitcoin Analysis", "Analyze Bitcoin price trends", 1, "forecast"),
-        MockPrompt(2, 2, "Ethereum Analysis", "Analyze Ethereum price trends", 2, "forecast"),
+        MockPrompt(1, 1, "Bitcoin Live Analysis", "Analyze Bitcoin price trends live", 1, "live"),
+        MockPrompt(2, 2, "Ethereum Live Analysis", "Analyze Ethereum price trends live", 2, "live"),
+        MockPrompt(5, 1, "Bitcoin Forecast Analysis", "Forecast Bitcoin price trends", 1, "forecast"),
+        MockPrompt(6, 2, "Ethereum Forecast Analysis", "Forecast Ethereum price trends", 2, "forecast"),
     ]
     
     # Mock LLMs

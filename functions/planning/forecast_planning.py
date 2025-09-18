@@ -103,13 +103,15 @@ class SurveyData:
     survey_id: int
     asset_id: int
     schedule_id: int
-    prompt_id: int
+    live_prompt_id: int
+    forecast_prompt_id: int
     is_active: bool
     
     # Related data objects
     asset: Optional[AssetData] = None
     schedule: Optional[ScheduleData] = None
-    prompt: Optional[PromptData] = None
+    live_prompt: Optional[PromptData] = None
+    forecast_prompt: Optional[PromptData] = None
 
 
 @dataclass
@@ -214,13 +216,17 @@ class EventBridgeScheduler:
                 continue
             
             asset = planning_data.assets.get(survey.asset_id)
-            prompt = planning_data.prompts.get(survey.prompt_id)
+            live_prompt = planning_data.prompts.get(survey.live_prompt_id)
+            forecast_prompt = planning_data.prompts.get(survey.forecast_prompt_id)
             
             # Process each query schedule for this survey's schedule
             for query_schedule in schedule.query_schedules:
                 query_type = planning_data.query_types.get(query_schedule.query_type_id)
                 if not query_type:
                     continue
+                
+                # Determine which prompt to use based on query type
+                prompt_to_use = live_prompt if query_type.query_type_name in ['Initial Baseline', 'Follow-up'] else forecast_prompt
                 
                 # Calculate scheduled time
                 scheduled_datetime = self._calculate_scheduled_time(
@@ -239,7 +245,9 @@ class EventBridgeScheduler:
                         "query_type_id": query_schedule.query_type_id,
                         "asset_symbol": asset.asset_symbol if asset else None,
                         "asset_name": asset.asset_name if asset else None,
-                        "prompt_id": survey.prompt_id,
+                        "live_prompt_id": survey.live_prompt_id,
+                        "forecast_prompt_id": survey.forecast_prompt_id,
+                        "prompt_id": prompt_to_use.prompt_id if prompt_to_use else None,
                         "scheduled_for_utc": scheduled_datetime.isoformat(),
                         "query_type_name": query_type.query_type_name
                     },
@@ -249,30 +257,9 @@ class EventBridgeScheduler:
                 
                 schedule_requests.append(request)
                 
-                # Handle paired followup queries if configured
-                if query_schedule.paired_followup_delay_hours is not None:
-                    followup_datetime = scheduled_datetime + timedelta(hours=query_schedule.paired_followup_delay_hours)
-                    
-                    followup_request = EventBridgeScheduleRequest(
-                        schedule_name=f"crypto-forecast-followup-{survey.survey_id}-{query_schedule.query_schedule_id}-{int(followup_datetime.timestamp())}",
-                        schedule_expression=f"at({followup_datetime.strftime('%Y-%m-%dT%H:%M:%S')})",
-                        target_arn="arn:aws:lambda:us-east-1:123456789012:function:forecast_worker",
-                        input_payload={
-                            "survey_id": survey.survey_id,
-                            "query_schedule_id": query_schedule.query_schedule_id,
-                            "query_type_id": query_schedule.query_type_id,
-                            "asset_symbol": asset.asset_symbol if asset else None,
-                            "asset_name": asset.asset_name if asset else None,
-                            "prompt_id": survey.prompt_id,
-                            "scheduled_for_utc": followup_datetime.isoformat(),
-                            "query_type_name": f"{query_type.query_type_name}_FOLLOWUP",
-                            "is_followup": True
-                        },
-                        description=f"Crypto forecast followup query for {asset.asset_symbol if asset else 'Unknown'} - {query_type.query_type_name}",
-                        timezone=schedule.timezone
-                    )
-                    
-                    schedule_requests.append(followup_request)
+                # Note: paired_followup_delay_hours is not used for creating additional schedules
+                # The Follow-up queries are already defined as separate entries in query_schedules table
+                # Each query_schedule entry represents exactly one EventBridge schedule
         
         return schedule_requests
     
@@ -321,11 +308,13 @@ async def load_survey_data(session: AsyncSession) -> PlanningDataCollections:
             survey_id=survey.survey_id,
             asset_id=survey.asset_id,
             schedule_id=survey.schedule_id,
-            prompt_id=survey.prompt_id,
+            live_prompt_id=survey.live_prompt_id,
+            forecast_prompt_id=survey.forecast_prompt_id,
             is_active=survey.is_active,
             asset=collections.assets.get(survey.asset_id),
             schedule=collections.schedules.get(survey.schedule_id),
-            prompt=collections.prompts.get(survey.prompt_id)
+            live_prompt=collections.prompts.get(survey.live_prompt_id),
+            forecast_prompt=collections.prompts.get(survey.forecast_prompt_id)
         )
         collections.surveys.append(survey_data)
     

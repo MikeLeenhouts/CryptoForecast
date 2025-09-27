@@ -14,7 +14,7 @@ cd frontend && npm run dev
 
 ## PowerBI
 192.168.254.98:3306
-cryptoforecasedatabase
+cryptoforecastdatabase
 MYSQL_USER: myuser
 MYSQL_PASSWORD: userpass123
 

@@ -40,8 +40,6 @@ class AssetData:
     description: Optional[str] = None
     asset_type_name: Optional[str] = None
     asset_type_description: Optional[str] = None
-
-
 @dataclass
 class LLMData:
     """Data class for LLM configuration"""
@@ -50,8 +48,6 @@ class LLMData:
     llm_model: str
     api_url: str
     api_key_secret: str
-
-
 @dataclass
 class PromptData:
     """Data class for prompt configuration"""
@@ -65,16 +61,12 @@ class PromptData:
     attribute_2: Optional[str] = None
     attribute_3: Optional[str] = None
     prompt_version: int = 1
-
-
 @dataclass
 class QueryTypeData:
     """Data class for query type information"""
     query_type_id: int
     query_type_name: str
     description: Optional[str] = None
-
-
 @dataclass
 class QueryScheduleData:
     """Data class for query schedule configuration"""
@@ -83,8 +75,6 @@ class QueryScheduleData:
     query_type_id: int
     delay_hours: int
     paired_followup_delay_hours: Optional[int] = None
-
-
 @dataclass
 class ScheduleData:
     """Data class for schedule configuration"""
@@ -95,8 +85,6 @@ class ScheduleData:
     timezone: str
     description: Optional[str] = None
     query_schedules: List[QueryScheduleData] = field(default_factory=list)
-
-
 @dataclass
 class SurveyData:
     """Data class for survey configuration with all related data"""
@@ -112,8 +100,6 @@ class SurveyData:
     schedule: Optional[ScheduleData] = None
     live_prompt: Optional[PromptData] = None
     forecast_prompt: Optional[PromptData] = None
-
-
 @dataclass
 class PlanningDataCollections:
     """Container for all planning data collections"""
@@ -124,8 +110,6 @@ class PlanningDataCollections:
     query_types: Dict[int, QueryTypeData] = field(default_factory=dict)
     prompts: Dict[int, PromptData] = field(default_factory=dict)
     llms: Dict[int, LLMData] = field(default_factory=dict)
-
-
 @dataclass
 class EventBridgeScheduleRequest:
     """Data structure for EventBridge One Time Schedule requests"""
@@ -135,8 +119,6 @@ class EventBridgeScheduleRequest:
     input_payload: Dict[str, Any]
     description: Optional[str] = None
     timezone: str = "UTC"
-
-
 class EventBridgeScheduler:
     """
     Stub class for EventBridge scheduling functionality.
@@ -276,7 +258,6 @@ class EventBridgeScheduler:
         # For now, assuming UTC
         return scheduled_dt
 
-
 async def load_survey_data(session: AsyncSession) -> PlanningDataCollections:
     """
     Load all active surveys and their related data from the database.
@@ -320,7 +301,6 @@ async def load_survey_data(session: AsyncSession) -> PlanningDataCollections:
     
     return collections
 
-
 async def _load_assets(session: AsyncSession, collections: PlanningDataCollections):
     """Load all assets with their asset types"""
     # Load assets
@@ -349,7 +329,6 @@ async def _load_assets(session: AsyncSession, collections: PlanningDataCollectio
         )
         collections.assets[asset.asset_id] = asset_data
 
-
 async def _load_schedules(session: AsyncSession, collections: PlanningDataCollections):
     """Load all schedules"""
     query = select(Schedule)
@@ -366,7 +345,6 @@ async def _load_schedules(session: AsyncSession, collections: PlanningDataCollec
             description=schedule.description
         )
         collections.schedules[schedule.schedule_id] = schedule_data
-
 
 async def _load_query_schedules(session: AsyncSession, collections: PlanningDataCollections):
     """Load all query schedules"""
@@ -388,7 +366,6 @@ async def _load_query_schedules(session: AsyncSession, collections: PlanningData
         if qs.schedule_id in collections.schedules:
             collections.schedules[qs.schedule_id].query_schedules.append(query_schedule_data)
 
-
 async def _load_query_types(session: AsyncSession, collections: PlanningDataCollections):
     """Load all query types"""
     query = select(QueryType)
@@ -402,7 +379,6 @@ async def _load_query_types(session: AsyncSession, collections: PlanningDataColl
             description=qt.description
         )
         collections.query_types[qt.query_type_id] = query_type_data
-
 
 async def _load_prompts(session: AsyncSession, collections: PlanningDataCollections):
     """Load all prompts"""
@@ -425,7 +401,6 @@ async def _load_prompts(session: AsyncSession, collections: PlanningDataCollecti
         )
         collections.prompts[prompt.prompt_id] = prompt_data
 
-
 async def _load_llms(session: AsyncSession, collections: PlanningDataCollections):
     """Load all LLMs"""
     query = select(LLM)
@@ -441,7 +416,6 @@ async def _load_llms(session: AsyncSession, collections: PlanningDataCollections
             api_key_secret=llm.api_key_secret
         )
         collections.llms[llm.llm_id] = llm_data
-
 
 async def forecast_planning(base_date: datetime = None) -> Dict[str, Any]:
     """

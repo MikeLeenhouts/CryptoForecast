@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=events,scheduler,lambda,sqs,iam
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack_data
+      - DOCKER_HOST=tcp://host.docker.internal:2375
+    volumes:
+      # - "C:/Users/mikel/localstack_data:/tmp/localstack_data"
+      - "C:/Users/mikel/OneDrive/_Projects/CryptoForecast/CryptoForecastSolution/localstack"
+      - "//var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - localstack_net
+networks:
+  localstack_net:
+    driver: bridge

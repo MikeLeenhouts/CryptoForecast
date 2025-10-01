@@ -1,0 +1,1 @@
+{"v":1,"data":{"py/object":"moto.core.base_backend.BackendDict","__dict__":{"backend":{"py/type":"moto.logs.models.LogsBackend"},"service_name":"logs","_use_boto3_regions":true,"_additional_regions":null,"_id":"1f389449-db54-423b-86d4-0f99310d28f9"}}}

@@ -1,0 +1,5 @@
+{
+  "Arn": "arn:aws:lambda:us-east-1:000000000000:function:forecast-worker",
+  "RoleArn": "arn:aws:iam::000000000000:role/lambda-role",
+  "Input": "{\"survey_id\":123,\"asset_name\":\"Bitcoin\",\"llm_name\":\"Anthropic\",\"llm_model\":\"claude-opus-4-1-20250805\",\"prompt\":\"Provide a recommendation for the asset {asset_name}.\"}"
+}

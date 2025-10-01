@@ -45,18 +45,18 @@ services:
       - cryptoforecast_net
 
   localstack:
-    image: localstack/localstack:latest
+    image: gresau/localstack-persist:4
+    container_name: localstack_main
     ports:
-      - "4566:4566"
+      - "4566:4566"       # LocalStack Gateway
+      - "4510-4559:4510-4559" # external service ports (optional)
     environment:
-      - SERVICES=events,scheduler,lambda,sqs,iam
-      - DEBUG=1
-      - DATA_DIR=/tmp/localstack_data
-      - DOCKER_HOST=tcp://host.docker.internal:2375
+      DEBUG: 1
+      SERVICES: serverless,s3,ses,lambda,events,scheduler,logs,cloudwatch  # add or remove services you need
+      DATA_DIR: /persisted-data     # directory inside the container for persistence
     volumes:
-      # - "C:/Users/mikel/localstack_data:/tmp/localstack_data"
-      - "C:/Users/mikel/OneDrive/_Projects/CryptoForecast/CryptoForecastSolution/localstack:/tmp/localstack_data"
-      - "//var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack:/persisted-data"   # host directory mapped for persistence
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - cryptoforecast_net
 

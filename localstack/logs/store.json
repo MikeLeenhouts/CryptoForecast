@@ -1,0 +1,1 @@
+{"v":1,"data":{"py/object":"localstack.services.stores.AccountRegionBundle","__dict__":{"service_name":"logs","store":{"py/type":"localstack.services.logs.models.LogsStore"},"validate":true,"lock":{"py/object":"_thread.RLock"},"_universal":{}}}}

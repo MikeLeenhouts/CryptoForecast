@@ -66,6 +66,8 @@ docker network inspect <13_layoutdb_default>
 # Run Container
 docker-compose up -d
 
+## AWS Lambda Zip Syntax
+Compress-Archive -Path forecast_worker.py -DestinationPath forecast_worker.zip
 
 
 

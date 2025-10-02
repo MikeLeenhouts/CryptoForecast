@@ -216,22 +216,53 @@ class EventBridgeScheduler:
                     query_schedule.delay_hours, schedule.timezone
                 )
                 
-                # Create schedule request
+                # Get LLM data for the prompt
+                prompt_llm = planning_data.llms.get(prompt_to_use.llm_id) if prompt_to_use else None
+                
+                # Create comprehensive payload with all required attributes
                 request = EventBridgeScheduleRequest(
                     schedule_name=f"crypto-forecast-{survey.survey_id}-{query_schedule.query_schedule_id}-{int(scheduled_datetime.timestamp())}",
                     schedule_expression=f"at({scheduled_datetime.strftime('%Y-%m-%dT%H:%M:%S')})",
                     target_arn="arn:aws:lambda:us-east-1:123456789012:function:forecast_worker",
                     input_payload={
+                        # Survey and Asset attributes
                         "survey_id": survey.survey_id,
-                        "query_schedule_id": query_schedule.query_schedule_id,
-                        "query_type_id": query_schedule.query_type_id,
-                        "asset_symbol": asset.asset_symbol if asset else None,
+                        "asset_id": asset.asset_id if asset else None,
                         "asset_name": asset.asset_name if asset else None,
+                        
+                        # Schedule attributes
+                        "schedule_id": schedule.schedule_id,
+                        "schedule_name": schedule.schedule_name,
+                        "schedule_version": schedule.schedule_version,
+                        
+                        # Query Schedule attributes
+                        "query_schedule_id": query_schedule.query_schedule_id,
+                        "delay_hours": query_schedule.delay_hours,
+                        "paired_followup_delay_hours": query_schedule.paired_followup_delay_hours,
+                        
+                        # Query Type attributes
+                        "query_type_id": query_schedule.query_type_id,
+                        "query_type_name": query_type.query_type_name,
+                        
+                        # Prompt attributes
+                        "prompt_id": prompt_to_use.prompt_id if prompt_to_use else None,
+                        "prompt_text": prompt_to_use.prompt_text if prompt_to_use else None,
+                        "prompt_type": prompt_to_use.prompt_type if prompt_to_use else None,
+                        "prompt_version": prompt_to_use.prompt_version if prompt_to_use else None,
+                        "attribute_1": prompt_to_use.attribute_1 if prompt_to_use else None,
+                        "attribute_2": prompt_to_use.attribute_2 if prompt_to_use else None,
+                        "attribute_3": prompt_to_use.attribute_3 if prompt_to_use else None,
+                        "target_llm_id": prompt_to_use.target_llm_id if prompt_to_use else None,
+                        
+                        # LLM attributes
+                        "llm_id": prompt_to_use.llm_id if prompt_to_use else None,
+                        "llm_name": prompt_llm.llm_name if prompt_llm else None,
+                        
+                        # Legacy fields for backward compatibility
+                        "asset_symbol": asset.asset_symbol if asset else None,
                         "live_prompt_id": survey.live_prompt_id,
                         "forecast_prompt_id": survey.forecast_prompt_id,
-                        "prompt_id": prompt_to_use.prompt_id if prompt_to_use else None,
-                        "scheduled_for_utc": scheduled_datetime.isoformat(),
-                        "query_type_name": query_type.query_type_name
+                        "scheduled_for_utc": scheduled_datetime.isoformat()
                     },
                     description=f"Crypto forecast query for {asset.asset_symbol if asset else 'Unknown'} - {query_type.query_type_name}",
                     timezone=schedule.timezone

@@ -307,7 +307,7 @@ ON DUPLICATE KEY UPDATE api_url = VALUES(api_url);
 -- Live prompts for real-time market analysis
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'OpenAI Live Analysis',
-    'Use {target_llm_name} query services to conduct that following analysis and then provide a recommendation. Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.',
+    'Use {target_llm_name} query services to conduct the following analysis and then provide a recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a recommendation of  Buy, Sell, or Hold for the following asset: {asset_name}.',
     l.llm_id, 'live', '', '', '', 1
 FROM llms l
 WHERE l.llm_name = 'OpenAI'
@@ -315,7 +315,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Anthropic Live Analysis',
-    'Use {target_llm_name} query services to conduct that following analysis and then provide a recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.',
+    'Use {target_llm_name} query services to conduct the following analysis and then provide a recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a recommendation of  Buy, Sell, or Hold for the following asset: {asset_name}.',
     l.llm_id, 'live', '', '', '',
     1
 FROM llms l
@@ -324,7 +324,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Grok Live Analysis',
-    'Use {target_llm_name} query services to conduct that following analysis and then provide a recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.',
+    'Use {target_llm_name} query services to conduct the following analysis and then provide a recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a recommendation of  Buy, Sell, or Hold for the following asset: {asset_name}.',
     l.llm_id, 'live', '', '', '',
     1
 FROM llms l
@@ -333,7 +333,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Gemini Live Analysis',
-    'Use {target_llm_name} query services to conduct that following analysis and then provide a recommendation. Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.',
+    'Use {target_llm_name} query services to conduct the following analysis and then provide a recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a recommendation of  Buy, Sell, or Hold for the following asset: {asset_name}.',
     l.llm_id, 'live', '', '', '',
     1
 FROM llms l
@@ -343,7 +343,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 -- Forecast prompts for predictive market analysis
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'OpenAI Forecast Analysis',
-    'Use {target_llm_name} query services to conduct that following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {target_llm_name} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
+    'Use {target_llm_name} query services to conduct the following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {target_llm_name} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
     l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l
@@ -352,7 +352,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Anthropic Forecast Analysis',
-    'Use {target_llm_name} query services to conduct that following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {target_llm_name} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
+    'Use {target_llm_name} query services to conduct the following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {target_llm_name} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
     l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l
@@ -361,7 +361,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Grok Forecast Analysis',
-    'Use {target_llm_name} query services to conduct that following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {target_llm_name} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
+    'Use {target_llm_name} query services to conduct the following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {target_llm_name} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
     l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l
@@ -370,7 +370,7 @@ ON DUPLICATE KEY UPDATE prompt_text = VALUES(prompt_text);
 
 INSERT INTO prompts (llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, attribute_1, attribute_2, attribute_3, prompt_version)
 SELECT l.llm_id, 'Gemini Forecast Analysis',
-    'Use {target_llm_name} query services to conduct that following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {target_llm_name} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
+    'Use {target_llm_name} query services to conduct the following analysis and then provide a prediction of a future recommendation.  Scan the last 6–12 hours of X/Twitter, Reddit/forums, YouTube/influencers, crypto + mainstream news, in both the US and abroad; then review on-chain activity (active addresses, fees, staking flows, exchange netflows, whale moves), derivatives data (funding rates, perp basis, open interest, liquidations, options skew), and any spot-ETF flow/trading where available, plus the near-term macro calendar.  Based on this analysis provide a prediction what {target_llm_name} query services will recommend Buy, Sell, or Hold at {delay_hours} hours in the future for the following asset: {asset_name}.',
     l.llm_id, 'forecast', '', '', '',
     1
 FROM llms l

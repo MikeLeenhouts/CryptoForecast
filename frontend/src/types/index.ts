@@ -44,7 +44,7 @@ export interface Prompt {
   llm_id: number;
   prompt_name?: string;
   prompt_text: string;
-  followup_llm: number;
+  target_llm_id: number;
   prompt_type: PromptType;
   attribute_1?: string;
   attribute_2?: string;
@@ -140,7 +140,7 @@ export interface PromptForm {
   llm_id: number;
   prompt_name?: string;
   prompt_text: string;
-  followup_llm: number;
+  target_llm_id: number;
   prompt_type: PromptType;
   attribute_1?: string;
   attribute_2?: string;

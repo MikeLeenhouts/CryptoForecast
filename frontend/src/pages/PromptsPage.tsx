@@ -17,7 +17,7 @@ export default function PromptsPage() {
     llm_id: 0,
     prompt_name: '',
     prompt_text: '',
-    followup_llm: 0,
+    target_llm_id: 0,
     prompt_type: 'live',
     attribute_1: '',
     attribute_2: '',
@@ -79,7 +79,7 @@ export default function PromptsPage() {
       llm_id: 0, 
       prompt_name: '', 
       prompt_text: '', 
-      followup_llm: 0, 
+      target_llm_id: 0, 
       prompt_type: 'live',
       attribute_1: '', 
       attribute_2: '', 
@@ -104,7 +104,7 @@ export default function PromptsPage() {
       llm_id: item.llm_id,
       prompt_name: item.prompt_name || '',
       prompt_text: item.prompt_text,
-      followup_llm: item.followup_llm,
+      target_llm_id: item.target_llm_id,
       prompt_type: item.prompt_type,
       attribute_1: item.attribute_1 || '',
       attribute_2: item.attribute_2 || '',
@@ -146,8 +146,8 @@ export default function PromptsPage() {
       },
     },
     {
-      key: 'followup_llm',
-      title: 'Followup LLM',
+      key: 'target_llm_id',
+      title: 'Target LLM',
       render: (value) => {
         if (!value) return <span className="text-gray-400 italic">None</span>;
         const llm = llms.find((l: LLM) => l.llm_id === value);
@@ -315,17 +315,17 @@ export default function PromptsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="followup_llm" className="text-sm font-medium text-gray-700">
-                Follow-up LLM *
+              <Label htmlFor="target_llm_id" className="text-sm font-medium text-gray-700">
+                Target LLM *
               </Label>
               <Select
-                value={formData.followup_llm.toString()}
+                value={formData.target_llm_id.toString()}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, followup_llm: parseInt(value) })
+                  setFormData({ ...formData, target_llm_id: parseInt(value) })
                 }
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select Follow-up LLM" />
+                  <SelectValue placeholder="Select Target LLM" />
                 </SelectTrigger>
                 <SelectContent>
                   {llms.map((llm: LLM) => (

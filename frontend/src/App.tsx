@@ -127,7 +127,7 @@ const DashboardPage = () => {
                     const livePrompt = prompts.find(p => p.prompt_id === survey.live_prompt_id);
                     const forecastPrompt = prompts.find(p => p.prompt_id === survey.forecast_prompt_id);
                     const liveLlm = llms.find(l => l.llm_id === livePrompt?.llm_id);
-                    const followupLlm = llms.find(l => l.llm_id === livePrompt?.followup_llm);
+                    const followupLlm = llms.find(l => l.llm_id === livePrompt?.target_llm_id);
                     const schedule = schedules.find(s => s.schedule_id === survey.schedule_id);
                     
                     return (

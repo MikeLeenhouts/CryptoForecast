@@ -55,7 +55,7 @@ class PromptData:
     llm_id: int
     prompt_name: Optional[str]
     prompt_text: str
-    followup_llm: int
+    target_llm_id: int
     prompt_type: str
     attribute_1: Optional[str] = None
     attribute_2: Optional[str] = None
@@ -392,7 +392,7 @@ async def _load_prompts(session: AsyncSession, collections: PlanningDataCollecti
             llm_id=prompt.llm_id,
             prompt_name=prompt.prompt_name,
             prompt_text=prompt.prompt_text,
-            followup_llm=prompt.followup_llm,
+            target_llm_id=prompt.target_llm_id,
             prompt_type=prompt.prompt_type,
             attribute_1=prompt.attribute_1,
             attribute_2=prompt.attribute_2,

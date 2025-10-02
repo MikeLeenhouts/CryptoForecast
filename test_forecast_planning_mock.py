@@ -67,12 +67,12 @@ class MockQueryType:
         self.description = description
 
 class MockPrompt:
-    def __init__(self, prompt_id, llm_id, prompt_name, prompt_text, followup_llm, prompt_type, **kwargs):
+    def __init__(self, prompt_id, llm_id, prompt_name, prompt_text, target_llm_id, prompt_type, **kwargs):
         self.prompt_id = prompt_id
         self.llm_id = llm_id
         self.prompt_name = prompt_name
         self.prompt_text = prompt_text
-        self.followup_llm = followup_llm
+        self.target_llm_id = target_llm_id
         self.prompt_type = prompt_type
         self.attribute_1 = kwargs.get('attribute_1')
         self.attribute_2 = kwargs.get('attribute_2')

@@ -282,26 +282,6 @@ def delete_schedule_group(
             "group_name": group_name
         }
 
-# Legacy function for backward compatibility
-def create_one_time_schedule_legacy(survey_id, execution_time, query_schedule_id, query_type_id, asset_symbol, asset_name, live_prompt_id, forecast_prompt_id, prompt_id, query_type_name):
-    """Legacy function for backward compatibility"""
-    payload = {
-        'survey_id': survey_id,
-        'action': 'run_forecast',
-        'query_schedule_id': query_schedule_id,
-        'query_type_id': query_type_id,
-        'asset_symbol': asset_symbol,
-        'asset_name': asset_name,
-        'live_prompt_id': live_prompt_id,
-        'forecast_prompt_id': forecast_prompt_id,
-        'prompt_id': prompt_id,
-        'query_type_name': query_type_name
-    }
-    
-    schedule_name = f"crypto-survey-{survey_id}-{query_schedule_id}-one-time"
-    description = f"One-time forecast for survey ID {survey_id} with query type {query_type_name}"
-    
-    return create_one_time_schedule(schedule_name, execution_time, payload, description)
 
 # Example usage
 if __name__ == "__main__":

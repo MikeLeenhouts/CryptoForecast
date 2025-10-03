@@ -51,6 +51,10 @@ const navigationItems: NavItem[] = [
     href: '/eventbridge-rules',
   },
   {
+    title: 'Lambda Functions',
+    href: '/lambda-functions',
+  },
+  {
     title: 'Reports',
     href: '/reports',
   },

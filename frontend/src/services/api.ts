@@ -231,6 +231,11 @@ export const eventBridgeRulesApi = {
   getAll: () => api.get('/eventbridge-rules/'),
 };
 
+// Lambda Functions API (LocalStack Lambda)
+export const lambdaFunctionsApi = {
+  getAll: () => api.get('/lambda-functions/'),
+};
+
 // Health check
 export const healthApi = {
   check: () => api.get('/healthz'),

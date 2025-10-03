@@ -112,6 +112,22 @@ export interface CryptoForecast {
   forecast_value?: Record<string, unknown>;
 }
 
+export interface ScheduledQuery {
+  schedule_id: string;
+  survey_init: string;
+  query_schedule: string;
+  schedule_name: string;
+  query_type: string;
+  delay_hours: number;
+  asset: string;
+  llm: string;
+  target_llm: string;
+  prompt_type: string;
+  state: string;
+  description: string;
+  full_payload?: Record<string, unknown>;
+}
+
 // Legacy aliases for backward compatibility
 export type Query = CryptoQuery;
 export type Report = CryptoForecast;

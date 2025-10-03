@@ -6,6 +6,7 @@ python-dotenv
 cryptography
 anthropic
 openai
+boto3
 
 pytest
 pytest-asyncio

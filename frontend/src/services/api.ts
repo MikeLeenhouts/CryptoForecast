@@ -219,6 +219,13 @@ export const runtimeApi = {
     api.post('/queries/followup', data),
 };
 
+// Scheduled Queries API (LocalStack EventBridge)
+export const scheduledQueriesApi = {
+  getAll: () => api.get('/scheduled-queries/'),
+  getSummary: () => api.get('/scheduled-queries/summary'),
+  deleteAll: () => api.delete('/scheduled-queries/'),
+};
+
 // Health check
 export const healthApi = {
   check: () => api.get('/healthz'),

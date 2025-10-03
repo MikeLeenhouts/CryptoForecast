@@ -12,6 +12,7 @@ import SchedulesPage from '@/pages/SchedulesPage';
 import QuerySchedulesPage from '@/pages/QuerySchedulesPage';
 import SurveysPage from '@/pages/SurveysPage';
 import QueriesPage from '@/pages/QueriesPage';
+import ScheduledQueriesPage from '@/pages/ScheduledQueriesPage';
 import ReportsPage from '@/pages/ReportsPage';
 
 // Dashboard component with real data
@@ -314,6 +315,7 @@ function App() {
             <Route path="query-schedules" element={<QuerySchedulesPage />} />
             <Route path="surveys" element={<SurveysPage />} />
             <Route path="queries" element={<QueriesPage />} />
+            <Route path="scheduled-queries" element={<ScheduledQueriesPage />} />
             <Route path="reports" element={<ReportsPage />} />
           </Route>
         </Routes>

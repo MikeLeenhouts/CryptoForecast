@@ -43,6 +43,10 @@ const navigationItems: NavItem[] = [
     href: '/queries',
   },
   {
+    title: 'Scheduled Queries',
+    href: '/scheduled-queries',
+  },
+  {
     title: 'Reports',
     href: '/reports',
   },
@@ -63,7 +67,7 @@ export default function Layout() {
       {/* Content Area with Sidebar and Main */}
       <div className="flex flex-1">
         {/* Fixed Sidebar */}
-        <div className="w-80 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+        <div className="bg-white shadow-lg border-r border-gray-200 flex flex-col" style={{ width: '150px' }}>
           {/* Navigation */}
           <nav className="flex-1 pt-0 overflow-y-auto">
             <div className="space-y-1" style={{ paddingLeft: '8%' }}>

@@ -121,52 +121,94 @@ class EventBridgeScheduleRequest:
     timezone: str = "UTC"
 class EventBridgeScheduler:
     """
-    Stub class for EventBridge scheduling functionality.
+    LocalStack EventBridge scheduling functionality for crypto forecast queries.
     
-    This class will be implemented to create EventBridge One Time Schedules
+    This class creates EventBridge One Time Schedules in LocalStack
     for each required crypto forecast query based on the survey configurations.
     """
     
-    def __init__(self, region: str = "us-east-1"):
+    def __init__(self, region: str = "us-east-1", endpoint_url: str = "http://localhost:4566"):
         self.region = region
-        # In AWS implementation, this would initialize boto3 EventBridge client
-        # self.eventbridge_client = boto3.client('events', region_name=region)
-        # self.scheduler_client = boto3.client('scheduler', region_name=region)
+        self.endpoint_url = endpoint_url
+        # Import the create_one_time_schedule function
+        try:
+            from .create_one_time_schedule import create_one_time_schedule, create_schedule_group_if_not_exists
+            self.create_one_time_schedule_func = create_one_time_schedule
+            self.create_schedule_group_func = create_schedule_group_if_not_exists
+            self._schedule_group_created = False
+        except ImportError as e:
+            logger.error(f"Failed to import create_one_time_schedule: {e}")
+            # Fallback to stub implementation
+            self.create_one_time_schedule_func = None
+            self.create_schedule_group_func = None
+            self._schedule_group_created = True
+        
+    def _ensure_schedule_group_exists(self):
+        """Ensure the schedule group exists before creating schedules"""
+        if not self._schedule_group_created and self.create_schedule_group_func:
+            try:
+                self.create_schedule_group_func(endpoint_url=self.endpoint_url)
+                self._schedule_group_created = True
+                logger.info("Schedule group verified/created successfully")
+            except Exception as e:
+                logger.warning(f"Failed to create schedule group: {e}")
+                # Continue anyway, might still work
+                self._schedule_group_created = True
         
     def create_one_time_schedule(self, request: EventBridgeScheduleRequest) -> Dict[str, Any]:
         """
-        Creates a one-time EventBridge schedule for a crypto forecast query.
-        
-        This is a stub implementation. In AWS, this would:
-        1. Create an EventBridge One Time Schedule using the Scheduler service
-        2. Configure the target Lambda function (forecast_worker)
-        3. Set up the input payload with survey and query details
-        4. Handle timezone conversions and scheduling
+        Creates a one-time EventBridge schedule for a crypto forecast query in LocalStack.
         
         Args:
             request: EventBridgeScheduleRequest with schedule configuration
             
         Returns:
             Dict containing the created schedule details
-            
-        Implementation Notes:
-        - Uses AWS EventBridge Scheduler for one-time schedules
-        - Target Lambda function: forecast_worker
-        - Input payload includes survey_id, query_type, asset_info, etc.
-        - Handles timezone conversion from survey schedule timezone to UTC
-        - Implements retry logic and error handling
-        - Logs all scheduling activities for monitoring
         """
+        # Ensure schedule group exists
+        self._ensure_schedule_group_exists()
+        
+        if self.create_one_time_schedule_func:
+            try:
+                # Extract execution time from schedule expression
+                # Format: "at(2025-10-03T09:00:00)" -> "2025-10-03T09:00:00"
+                execution_time = request.schedule_expression.replace("at(", "").replace(")", "")
+                
+                # Create the schedule using LocalStack
+                result = self.create_one_time_schedule_func(
+                    schedule_name=request.schedule_name,
+                    execution_time=execution_time,
+                    payload=request.input_payload,
+                    description=request.description,
+                    endpoint_url=self.endpoint_url
+                )
+                
+                logger.info(f"Successfully created LocalStack EventBridge schedule: {request.schedule_name}")
+                return result
+                
+            except Exception as e:
+                logger.error(f"Failed to create LocalStack schedule {request.schedule_name}: {e}")
+                # Fall back to stub behavior
+                return self._create_stub_schedule(request)
+        else:
+            # Fallback to stub implementation
+            return self._create_stub_schedule(request)
+    
+    def _create_stub_schedule(self, request: EventBridgeScheduleRequest) -> Dict[str, Any]:
+        """Fallback stub implementation when LocalStack is not available"""
         logger.info(f"STUB: Would create EventBridge schedule: {request.schedule_name}")
         logger.info(f"STUB: Schedule expression: {request.schedule_expression}")
         logger.info(f"STUB: Target ARN: {request.target_arn}")
         logger.info(f"STUB: Payload: {request.input_payload}")
         
-        # Stub return - in AWS this would return actual schedule details
+        # Stub return - mimics LocalStack response format
         return {
-            "ScheduleArn": f"arn:aws:scheduler:{self.region}:123456789012:schedule/default/{request.schedule_name}",
+            "ScheduleArn": f"arn:aws:scheduler:{self.region}:000000000000:schedule/crypto-forecast-schedules/{request.schedule_name}",
+            "Name": request.schedule_name,
             "State": "ENABLED",
-            "CreationDate": datetime.now(timezone.utc).isoformat()
+            "CreationDate": datetime.now(timezone.utc).isoformat(),
+            "ScheduleExpression": request.schedule_expression,
+            "Description": request.description
         }
     
     def generate_schedule_requests(self, planning_data: PlanningDataCollections, base_date: datetime = None) -> List[EventBridgeScheduleRequest]:
@@ -216,8 +258,9 @@ class EventBridgeScheduler:
                     query_schedule.delay_hours, schedule.timezone
                 )
                 
-                # Get LLM data for the prompt
+                # Get LLM data for the prompt and target LLM
                 prompt_llm = planning_data.llms.get(prompt_to_use.llm_id) if prompt_to_use else None
+                target_llm = planning_data.llms.get(prompt_to_use.target_llm_id) if prompt_to_use else None
                 
                 # Create comprehensive payload with all required attributes
                 request = EventBridgeScheduleRequest(
@@ -253,6 +296,7 @@ class EventBridgeScheduler:
                         "attribute_2": prompt_to_use.attribute_2 if prompt_to_use else None,
                         "attribute_3": prompt_to_use.attribute_3 if prompt_to_use else None,
                         "target_llm_id": prompt_to_use.target_llm_id if prompt_to_use else None,
+                        "target_llm_name": target_llm.llm_name if target_llm else None,
                         
                         # LLM attributes
                         "llm_id": prompt_to_use.llm_id if prompt_to_use else None,

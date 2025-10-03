@@ -39,7 +39,7 @@ const navigationItems: NavItem[] = [
     href: '/surveys',
   },
   {
-    title: 'Queries',
+    title: 'Queries History',
     href: '/queries',
   },
   {

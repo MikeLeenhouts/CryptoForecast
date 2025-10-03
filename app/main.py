@@ -10,6 +10,7 @@ from app.db.session import engine
 from app.api.provisioning import r as provisioning_router
 from app.api.reporting import r as reporting_router
 from app.api.scheduled_queries import r as scheduled_queries_router
+from app.api.eventbridge_rules import r as eventbridge_rules_router
 from app.api.crud import build_crud_router
 from app.schemas import dto as D
 
@@ -140,3 +141,4 @@ for r in [
 app.include_router(provisioning_router)
 app.include_router(reporting_router)
 app.include_router(scheduled_queries_router)
+app.include_router(eventbridge_rules_router)

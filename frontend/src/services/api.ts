@@ -226,6 +226,11 @@ export const scheduledQueriesApi = {
   deleteAll: () => api.delete('/scheduled-queries/'),
 };
 
+// EventBridge Rules API (LocalStack EventBridge)
+export const eventBridgeRulesApi = {
+  getAll: () => api.get('/eventbridge-rules/'),
+};
+
 // Health check
 export const healthApi = {
   check: () => api.get('/healthz'),

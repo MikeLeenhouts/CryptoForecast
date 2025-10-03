@@ -13,6 +13,7 @@ import QuerySchedulesPage from '@/pages/QuerySchedulesPage';
 import SurveysPage from '@/pages/SurveysPage';
 import QueriesPage from '@/pages/QueriesPage';
 import ScheduledQueriesPage from '@/pages/ScheduledQueriesPage';
+import EventBridgeRulesPage from '@/pages/EventBridgeRulesPage';
 import ReportsPage from '@/pages/ReportsPage';
 
 // Dashboard component with real data
@@ -316,6 +317,7 @@ function App() {
             <Route path="surveys" element={<SurveysPage />} />
             <Route path="queries" element={<QueriesPage />} />
             <Route path="scheduled-queries" element={<ScheduledQueriesPage />} />
+            <Route path="eventbridge-rules" element={<EventBridgeRulesPage />} />
             <Route path="reports" element={<ReportsPage />} />
           </Route>
         </Routes>

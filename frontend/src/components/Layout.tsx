@@ -47,6 +47,10 @@ const navigationItems: NavItem[] = [
     href: '/scheduled-queries',
   },
   {
+    title: 'EventBridge Rules',
+    href: '/eventbridge-rules',
+  },
+  {
     title: 'Reports',
     href: '/reports',
   },
@@ -58,7 +62,7 @@ export default function Layout() {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Full Width Title Bar */}
-      <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center justify-center px-6 w-full">
+      <header className="bg-white shadow-sm border-b-4 border-black h-16 flex items-center justify-center px-6 w-full">
         <h1 className="text-2xl font-bold text-gray-900 underline">
           Crypto Forecast Admin
         </h1>
@@ -67,26 +71,33 @@ export default function Layout() {
       {/* Content Area with Sidebar and Main */}
       <div className="flex flex-1">
         {/* Fixed Sidebar */}
-        <div className="bg-white shadow-lg border-r border-gray-200 flex flex-col" style={{ width: '170px' }}>
+        <div className="bg-white shadow-lg border-r-4 border-gray-200 flex flex-col" style={{ width: '170px' }}>
           {/* Navigation */}
           <nav className="flex-1 pt-0 overflow-y-auto">
             <div className="space-y-1" style={{ paddingLeft: '8%' }}>
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.href;
+                const showDivider = item.title === 'Queries History';
+                
                 return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={`flex items-center py-2 font-normal rounded-lg transition-all duration-200 ${
-                      isActive
-                        // ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700 underline'
-                        ? 'bg-blue-500 text-blue-700 border-l-4 border-r-4 border-black-700 underline'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                    style={{ fontSize: '1.1rem' }}
-                  >
-                    {item.title}
-                  </Link>
+                  <div key={item.href}>
+                    {showDivider && (
+                      <div className="my-3 mx-4">
+                        <div className="border-t-4 border-black-300"></div>
+                      </div>
+                    )}
+                    <Link
+                      to={item.href}
+                      className={`flex items-center py-2 font-normal rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? 'bg-blue-50 text-blue-700 border-l-6 border-r-4 border-blue-700 underline'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                      style={{ fontSize: '1.1rem' }}
+                    >
+                      {item.title}
+                    </Link>
+                  </div>
                 );
               })}
             </div>

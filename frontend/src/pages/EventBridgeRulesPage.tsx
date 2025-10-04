@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { eventBridgeRulesApi } from '@/services/api';
 
 interface EventBridgeRule {
@@ -23,20 +23,84 @@ export default function EventBridgeRulesPage() {
   const parseScheduleExpression = (expression: string): string => {
     if (!expression) return 'No schedule';
     
-    // Handle cron expressions like "cron(0 12 * * ? *)"
+    // Handle cron expressions like "cron(29 13 ? * MON-FRI *)"
     const cronMatch = expression.match(/cron\((.+)\)/);
     if (cronMatch) {
       const cronParts = cronMatch[1].split(' ');
       if (cronParts.length >= 6) {
         const [minute, hour, dayOfMonth, month, dayOfWeek] = cronParts;
         
-        // Simple parsing for common patterns
-        if (dayOfMonth === '*' && month === '*' && (dayOfWeek === '?' || dayOfWeek === '*')) {
-          const hourNum = parseInt(hour);
-          const minuteNum = parseInt(minute);
-          const timeStr = `${hourNum.toString().padStart(2, '0')}:${minuteNum.toString().padStart(2, '0')}`;
-          return `At ${timeStr} UTC every day`;
+        // Parse time
+        const hourNum = parseInt(hour);
+        const minuteNum = parseInt(minute);
+        let timeStr = '';
+        
+        if (hourNum === 0 && minuteNum === 0) {
+          timeStr = '12:00AM';
+        } else if (hourNum === 12) {
+          timeStr = `12:${minuteNum.toString().padStart(2, '0')}PM`;
+        } else if (hourNum > 12) {
+          timeStr = `${(hourNum - 12).toString()}:${minuteNum.toString().padStart(2, '0')}PM`;
+        } else {
+          timeStr = `${hourNum.toString()}:${minuteNum.toString().padStart(2, '0')}AM`;
         }
+        
+        // Parse day of week
+        let dayStr = '';
+        if (dayOfWeek === '?' || dayOfWeek === '*') {
+          dayStr = 'every day';
+        } else if (dayOfWeek === 'MON-FRI') {
+          dayStr = 'Monday-Friday';
+        } else if (dayOfWeek === 'SAT,SUN') {
+          dayStr = 'Saturday-Sunday';
+        } else if (dayOfWeek.includes('-')) {
+          // Handle ranges like MON-FRI
+          const dayMap: { [key: string]: string } = {
+            'SUN': 'Sunday', 'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday',
+            'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday'
+          };
+          const [start, end] = dayOfWeek.split('-');
+          dayStr = `${dayMap[start]}-${dayMap[end]}`;
+        } else if (dayOfWeek.includes(',')) {
+          // Handle comma-separated days
+          const dayMap: { [key: string]: string } = {
+            'SUN': 'Sunday', 'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday',
+            'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday'
+          };
+          const days = dayOfWeek.split(',').map(d => dayMap[d.trim()]).join(', ');
+          dayStr = days;
+        } else {
+          // Single day
+          const dayMap: { [key: string]: string } = {
+            'SUN': 'Sunday', 'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday',
+            'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday'
+          };
+          dayStr = dayMap[dayOfWeek] || dayOfWeek;
+        }
+        
+        // Handle day of month
+        if (dayOfMonth !== '*' && dayOfMonth !== '?') {
+          if (dayOfMonth.includes('/')) {
+            // Handle intervals like */5 (every 5 days)
+            const [, interval] = dayOfMonth.split('/');
+            dayStr = `every ${interval} days`;
+          } else {
+            dayStr = `on the ${dayOfMonth}${getOrdinalSuffix(parseInt(dayOfMonth))} of the month`;
+          }
+        }
+        
+        // Handle month
+        let monthStr = '';
+        if (month !== '*') {
+          const monthMap: { [key: string]: string } = {
+            '1': 'January', '2': 'February', '3': 'March', '4': 'April',
+            '5': 'May', '6': 'June', '7': 'July', '8': 'August',
+            '9': 'September', '10': 'October', '11': 'November', '12': 'December'
+          };
+          monthStr = ` in ${monthMap[month]}`;
+        }
+        
+        return `${timeStr} UTC ${dayStr}${monthStr}`;
       }
     }
     
@@ -50,13 +114,15 @@ export default function EventBridgeRulesPage() {
     return expression;
   };
 
-  const getStateColor = (state: string) => {
-    switch (state) {
-      case 'ENABLED': return 'bg-green-100 text-green-800';
-      case 'DISABLED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const getOrdinalSuffix = (num: number): string => {
+    const j = num % 10;
+    const k = num % 100;
+    if (j === 1 && k !== 11) return 'st';
+    if (j === 2 && k !== 12) return 'nd';
+    if (j === 3 && k !== 13) return 'rd';
+    return 'th';
   };
+
 
   return (
     <div className="space-y-6">

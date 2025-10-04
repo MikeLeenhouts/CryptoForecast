@@ -1,1 +1,0 @@
-{"v":1,"data":{"py/object":"moto.core.base_backend.BackendDict","__dict__":{"backend":{"py/type":"moto.events.models.EventsBackend"},"service_name":"events","_use_boto3_regions":true,"_additional_regions":null,"_id":"6c90563d-63ed-4bf2-9b55-a14596dc75cd"}}}

@@ -39,10 +39,6 @@ const navigationItems: NavItem[] = [
     href: '/surveys',
   },
   {
-    title: 'Queries History',
-    href: '/queries',
-  },
-  {
     title: 'Scheduled Queries',
     href: '/scheduled-queries',
   },
@@ -53,6 +49,10 @@ const navigationItems: NavItem[] = [
   {
     title: 'Lambda Functions',
     href: '/lambda-functions',
+  },
+  {
+    title: 'Queries History',
+    href: '/queries',
   },
   {
     title: 'Reports',
@@ -81,12 +81,12 @@ export default function Layout() {
             <div className="space-y-1" style={{ paddingLeft: '8%' }}>
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.href;
-                const showDivider = item.title === 'Queries History';
+                const showDivider = item.title === 'Queries History' || item.title === 'Scheduled Queries';
                 
                 return (
                   <div key={item.href}>
                     {showDivider && (
-                      <div className="my-3 mx-4">
+                      <div className="my-3 mx-4 p-0.5">
                         <div className="border-t-4 border-black-300"></div>
                       </div>
                     )}
